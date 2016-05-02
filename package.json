@@ -1,0 +1,10 @@
+{
+  "name": "book-loader",
+  "peerDependencies": {
+    "marked": "^0.3.5"
+  },
+  "dependencies": {
+    "loader-utils": "^0.2.14",
+    "urijs": "^1.18.0"
+  }
+}
