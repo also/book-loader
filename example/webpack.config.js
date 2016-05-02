@@ -18,7 +18,7 @@ module.exports = {
     loaders: [
       {
         test: /\.md$/,
-        loader: 'book'
+        loader: 'book/run!book'
       },
       {
         test: /\.(png)$/,

@@ -3,6 +3,7 @@ const marked = require('marked');
 const loaderUtils = require('loader-utils');
 const URI = require('urijs');
 
+
 class PageRenderer extends marked.Renderer {
   constructor(publicPath) {
     super();
@@ -31,6 +32,7 @@ class PageRenderer extends marked.Renderer {
 }
 
 module.exports = function bookLoader(content) {
+  console.log(`compiling ${this.request}`);
   this.cacheable(true);
 
   const renderer = new PageRenderer(this._compilation.outputOptions.publicPath);
@@ -43,13 +45,5 @@ module.exports = function bookLoader(content) {
 
   const requires = renderer.references.map((ref) => `require(${JSON.stringify(ref)});`).join('\n');
 
-  const query = loaderUtils.parseQuery(this.query);
-  const url = loaderUtils.interpolateName(this, query.name || "[name].html", {
-    context: query.context || this.options.context,
-    content
-  });
-
-  this.emitFile(url, content);
-
-  return `// source removed by book loader. see ${url}\n${requires}`;
+  return `${requires}\nmodule.exports = ${JSON.stringify(content)}`;
 }
