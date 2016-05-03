@@ -61,10 +61,21 @@ module.exports = function bookLoader(content) {
 		regExp: query.regExp
 	});
 
+  let htmlKey = 'html';
+  if (query.template) {
+    if (query.template === this.resourcePath) {
+      htmlKey = 'template';
+    } else {
+      content = `context
+      ? require(${JSON.stringify(query.template)}).template(Object.assign(Object.create(exports), {html: (context) => ${content}}))
+      : ${content}`
+    }
+  }
+
   return `Object.assign(exports, {
   toString: () => __webpack_public_path__ + ${JSON.stringify(url)},
   url: ${JSON.stringify(url)},
-  html: () => ${content},
+  ${htmlKey}: (context) => ${content},
   require: __webpack_require__
 })`;
 }

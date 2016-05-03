@@ -17,7 +17,7 @@ module.exports = class BookPlugin {
       const mainSource = compilation.assets[files[0]].source();
 
       function addAsset({url, html}) {
-        html = html();
+        html = html(true);
         compilation.assets[url] = {
           source: () => html,
           size: () => html.length
