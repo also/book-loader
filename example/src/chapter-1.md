@@ -1,3 +1,11 @@
 # Chapter 1
 
-![sprocket](image.png)
+An image:
+
+![image!](image.png)
+
+Some source:
+
+```
+<%= require('raw!./source-example.js') %>
+```

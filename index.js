@@ -8,18 +8,38 @@ class PageRenderer extends marked.Renderer {
   constructor(publicPath) {
     super();
     this.references = [];
-    this.publicPath = publicPath;
+    this.replacements = [];
   }
 
-  resolveUrl(url) {
+  replacement(js) {
+    this.replacements.push(js);
+    return `<!-- ~~ replacement ${this.replacements.length - 1} ~~ -->`;
+  }
+
+  preprocess(content) {
+    return content.replace(/<%=([\s\S]+?)%>/g, (match, js) => this.replacement(js));
+  }
+
+  postprocess(content) {
+    const {replacements} = this;
+    return content.split(/(?:&lt;|<)!-- ~~ replacement (\d+) ~~ --(?:&gt;|>)/g)
+      .map((s, i) => {
+        return (i % 2 == 0) ? JSON.stringify(s) : replacements[parseInt(s)]
+      })
+      .join(' + ');
+  }
+
+  resolveUrl(url, ref=true) {
     if (!loaderUtils.isUrlRequest(url)) {
       return url;
     }
-    if (!url.match(/$\/|..?\//)) {
+    if (!url.match(/$(\/|..?\/)/)) {
       url = `./${url}`;
     }
-    this.references.push(url);
-    return URI(url).absoluteTo(this.publicPath).toString().replace(/\.md$/, '.html');
+    if (ref) {
+      this.references.push(url);
+    }
+    return this.replacement(`require(${JSON.stringify(url)})`);
   }
 
   link(url, ...args) {
@@ -27,23 +47,33 @@ class PageRenderer extends marked.Renderer {
   }
 
   image(url, ...args) {
-    return super.image(this.resolveUrl(url), ...args);
+    return super.image(this.resolveUrl(url, false), ...args);
   }
 }
 
 module.exports = function bookLoader(content) {
-  console.log(`compiling ${this.request}`);
   this.cacheable(true);
+  const query = loaderUtils.parseQuery(this.query);
 
-  const renderer = new PageRenderer(this._compilation.outputOptions.publicPath);
+  const renderer = new PageRenderer();
+  content = renderer.preprocess(content);
+  content = marked(content, {gfm: true, renderer});
+  content = renderer.postprocess(content);
 
-  const opts = {
-    gfm: true,
-    renderer
-  };
-  content = marked(content, opts);
+  const deps = renderer.references.map((ref) => `{path: ${JSON.stringify(ref)}, module: require(${JSON.stringify(ref)})}`).join(',\n    ');
 
-  const requires = renderer.references.map((ref) => `require(${JSON.stringify(ref)});`).join('\n');
+  const url = loaderUtils.interpolateName(this, query.name || '[path][name].html', {
+    context: query.context || this.options.context,
+		content: content,
+		regExp: query.regExp
+	});
 
-  return `${requires}\nmodule.exports = ${JSON.stringify(content)}`;
+  return `Object.assign(exports, {
+  toString: () => __webpack_public_path__ + ${JSON.stringify(url)},
+  url: ${JSON.stringify(url)},
+  html: () => ${content},
+  deps: () => [
+    ${deps}
+  ]
+})`;
 }
