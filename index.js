@@ -31,9 +31,7 @@ class PageRenderer extends marked.Renderer {
     if (!loaderUtils.isUrlRequest(url)) {
       return url;
     }
-    if (!url.match(/$(\/|..?\/)/)) {
-      url = `./${url}`;
-    }
+    url = loaderUtils.urlToRequest(url);
     return this.replacement(`require(${JSON.stringify(url)})`);
   }
 

@@ -1,7 +1,7 @@
 const path = require('path');
 const BookPlugin = require('book-loader/plugin');
 
-const src = path.join(__dirname, 'src');
+const src = path.join(__dirname, 'Frontend');
 
 module.exports = {
   context: src,
@@ -20,7 +20,7 @@ module.exports = {
         test: /\.md$/,
         loaders: [{
           loader: 'book',
-          query: {template: path.join(src, 'template.md')}
+          //query: {template: path.join(src, 'template.md')}
         }]
       },
       {
