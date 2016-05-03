@@ -7,7 +7,6 @@ const URI = require('urijs');
 class PageRenderer extends marked.Renderer {
   constructor(publicPath) {
     super();
-    this.references = [];
     this.replacements = [];
   }
 
@@ -21,23 +20,19 @@ class PageRenderer extends marked.Renderer {
   }
 
   postprocess(content) {
-    const {replacements} = this;
     return content.split(/(?:&lt;|<)!-- ~~ replacement (\d+) ~~ --(?:&gt;|>)/g)
       .map((s, i) => {
-        return (i % 2 == 0) ? JSON.stringify(s) : replacements[parseInt(s)]
+        return (i % 2 == 0) ? JSON.stringify(s) : this.replacements[parseInt(s)]
       })
       .join(' + ');
   }
 
-  resolveUrl(url, ref=true) {
+  resolveUrl(url) {
     if (!loaderUtils.isUrlRequest(url)) {
       return url;
     }
     if (!url.match(/$(\/|..?\/)/)) {
       url = `./${url}`;
-    }
-    if (ref) {
-      this.references.push(url);
     }
     return this.replacement(`require(${JSON.stringify(url)})`);
   }
@@ -47,7 +42,7 @@ class PageRenderer extends marked.Renderer {
   }
 
   image(url, ...args) {
-    return super.image(this.resolveUrl(url, false), ...args);
+    return super.image(this.resolveUrl(url), ...args);
   }
 }
 
@@ -59,8 +54,6 @@ module.exports = function bookLoader(content) {
   content = renderer.preprocess(content);
   content = marked(content, {gfm: true, renderer});
   content = renderer.postprocess(content);
-
-  const deps = renderer.references.map((ref) => `require(${JSON.stringify(ref)})`).join(',\n    ');
 
   const url = loaderUtils.interpolateName(this, query.name || '[path][name].html', {
     context: query.context || this.options.context,
