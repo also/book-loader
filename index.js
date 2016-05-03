@@ -60,7 +60,7 @@ module.exports = function bookLoader(content) {
   content = marked(content, {gfm: true, renderer});
   content = renderer.postprocess(content);
 
-  const deps = renderer.references.map((ref) => `{path: ${JSON.stringify(ref)}, module: require(${JSON.stringify(ref)})}`).join(',\n    ');
+  const deps = renderer.references.map((ref) => `require(${JSON.stringify(ref)})`).join(',\n    ');
 
   const url = loaderUtils.interpolateName(this, query.name || '[path][name].html', {
     context: query.context || this.options.context,
@@ -72,8 +72,6 @@ module.exports = function bookLoader(content) {
   toString: () => __webpack_public_path__ + ${JSON.stringify(url)},
   url: ${JSON.stringify(url)},
   html: () => ${content},
-  deps: () => [
-    ${deps}
-  ]
+  require: __webpack_require__
 })`;
 }

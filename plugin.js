@@ -1,10 +1,6 @@
 const Module = require("module");
 
 module.exports = class BookPlugin {
-  constructor(options) {
-
-  }
-
   apply(compiler) {
     compiler.plugin('emit', (compilation, callback) => {
       const chunk0 = compilation.chunks[0];
@@ -20,24 +16,25 @@ module.exports = class BookPlugin {
 
       const mainSource = compilation.assets[files[0]].source();
 
-      function addAsset({url, html, deps}) {
-        if (compilation.assets[url]) {
-          return;
-        }
+      function addAsset({url, html}) {
         html = html();
         compilation.assets[url] = {
           source: () => html,
           size: () => html.length
         };
-        deps().forEach(({path, module}) => {
-          if (module.deps) {
-            addAsset(module);
-          }
-        });
       }
 
       try {
-        addAsset(eval(mainSource));
+        const main = eval(mainSource);
+        if (!main.require) {
+          return callback(new Error('Entry point is not a page'));
+        }
+        for (let i = 0; i < main.require.m.length; i++) {
+          const mod = main.require(i);
+          if (mod.html && mod.url) {
+            addAsset(mod);
+          }
+        }
       } catch (e) {
         callback(e);
       }
