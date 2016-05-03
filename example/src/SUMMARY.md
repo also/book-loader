@@ -3,3 +3,4 @@
 * [Chapter 1](chapter-1.md)
   * [Section A](section-a.md)
 * [More](subdir/more.md)
+* [Run Script](run-script.md)
