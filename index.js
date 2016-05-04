@@ -51,7 +51,10 @@ module.exports = function bookLoader(content) {
 
   const renderer = new PageRenderer();
   content = renderer.preprocess(content);
-  content = marked(content, {gfm: true, renderer});
+  if (query.markdown !== false) {
+    content = marked(content, {gfm: true, renderer});
+  }
+
   content = renderer.postprocess(content);
 
   const url = loaderUtils.interpolateName(this, query.name || '[path][name].html', {
@@ -61,8 +64,8 @@ module.exports = function bookLoader(content) {
 	});
 
   let htmlKey = 'html';
-  if (query.template) {
-    if (query.template === this.resourcePath) {
+  if (query.template || query.isTemplate) {
+    if (query.template === this.resourcePath || query.isTemplate) {
       htmlKey = 'template';
     } else {
       content = `context
