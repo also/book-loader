@@ -32,7 +32,8 @@ class PageRenderer extends marked.Renderer {
       return url;
     }
     url = loaderUtils.urlToRequest(url);
-    return this.replacement(`require(${JSON.stringify(url)})`);
+    const [path, hash] = url.split('#');
+    return this.replacement(`require(${JSON.stringify(path)})${hash ? ` + '#' + ${JSON.stringify(hash)}` : ''}`);
   }
 
   link(url, ...args) {
