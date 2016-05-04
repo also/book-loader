@@ -1,3 +1,4 @@
+const path = require('path');
 // TODO look into other markdown libraries: markdown-it, ...
 const marked = require('marked');
 const loaderUtils = require('loader-utils');
@@ -57,8 +58,10 @@ module.exports = function bookLoader(content) {
 
   content = renderer.postprocess(content);
 
+  const context = query.context || this.options.context;
+
   const url = loaderUtils.interpolateName(this, query.name || '[path][name].html', {
-    context: query.context || this.options.context,
+    context,
 		content: content,
 		regExp: query.regExp
 	});
@@ -77,6 +80,7 @@ module.exports = function bookLoader(content) {
   return `Object.assign(exports, {
   toString: () => __webpack_public_path__ + ${JSON.stringify(url)},
   url: ${JSON.stringify(url)},
+  filename: ${JSON.stringify(path.relative(context, this.resourcePath))},
   ${htmlKey}: (context) => ${content},
   require: __webpack_require__
 })`;
