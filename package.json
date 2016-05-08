@@ -1,6 +1,6 @@
 {
   "name": "book-loader",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "peerDependencies": {
     "marked": "^0.3.5"
   },
