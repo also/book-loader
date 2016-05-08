@@ -17,26 +17,28 @@ module.exports = class BookPlugin {
       const mainSource = compilation.assets[files[0]].source();
 
       function addAsset({url, html}) {
-        html = html(true);
+        try {
+          html = html(true);
+        } catch (e) {
+          e.file = url;
+          compilation.errors.push(e);
+          html = `build error`;
+        }
         compilation.assets[url] = {
           source: () => html,
           size: () => html.length
         };
       }
 
-      try {
-        const main = eval(mainSource);
-        if (!main.require) {
-          return callback(new Error('Entry point is not a page'));
+      const main = eval(mainSource);
+      if (!main.require) {
+        return callback(new Error('Entry point is not a page'));
+      }
+      for (let i = 0; i < main.require.m.length; i++) {
+        const mod = main.require(i);
+        if (mod.html && mod.url) {
+          addAsset(mod);
         }
-        for (let i = 0; i < main.require.m.length; i++) {
-          const mod = main.require(i);
-          if (mod.html && mod.url) {
-            addAsset(mod);
-          }
-        }
-      } catch (e) {
-        callback(e);
       }
 
       compilation.chunks.pop();
