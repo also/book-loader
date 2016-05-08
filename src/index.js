@@ -23,7 +23,7 @@ class PageRenderer extends marked.Renderer {
   postprocess(content) {
     return content.split(/(?:&lt;|<)!-- ~~ replacement (\d+) ~~ --(?:&gt;|>)/g)
       .map((s, i) => {
-        return (i % 2 == 0) ? JSON.stringify(s) : this.replacements[parseInt(s)]
+        return (i % 2 == 0) ? JSON.stringify(s) : `(${this.replacements[parseInt(s)]})`
       })
       .join(' + ');
   }
