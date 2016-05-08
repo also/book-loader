@@ -34,7 +34,7 @@ class PageRenderer extends marked.Renderer {
     }
     url = loaderUtils.urlToRequest(url);
     const [path, hash] = url.split('#');
-    return this.replacement(`require(${JSON.stringify(path)})${hash ? ` + '#' + ${JSON.stringify(hash)}` : ''}`);
+    return this.replacement(`(() => {try {return require(${JSON.stringify(path)})${hash ? ` + '#' + ${JSON.stringify(hash)}` : ''}} catch (e) {return ${JSON.stringify(url)}}})()`);
   }
 
   link(url, ...args) {
