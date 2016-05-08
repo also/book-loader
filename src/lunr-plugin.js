@@ -12,20 +12,15 @@ module.exports = class LunrPlugin {
 
       const docs = Object.create(null);
 
-      Object.keys(compilation.assets).forEach((k) => {
-        if (k.match(/\.html$/)) {
-          const asset = compilation.assets[k];
-          const $ = asset.$;
+      Object.keys(compilation.assets).forEach((url) => {
+        if (url.match(/\.html$/)) {
+          const {$, title} = compilation.assets[url];
+
           if ($) {
             const body = $.root().text();
 
-            const doc = {
-              url: k,
-              title: asset.title,
-              body
-            };
-            docs[k] = doc;
-            index.add(doc);
+            docs[url] = {url, title};
+            index.add({url, title, body});
           }
         }
       });
