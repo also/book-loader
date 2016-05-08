@@ -1,0 +1,7 @@
+language: node_js
+node_js:
+  - "4.1"
+before_script:
+  - npm link
+  - cd example && npm link book-loader && npm i
+script: cd example && npm run build
