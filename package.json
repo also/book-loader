@@ -1,13 +1,12 @@
 {
   "name": "book-loader",
   "version": "0.1.6",
-  "peerDependencies": {
-    "marked": "^0.3.5"
-  },
   "dependencies": {
     "cheerio": "^0.20.0",
     "loader-utils": "^0.2.14",
+    "lodash": "^4.12.0",
     "lunr": "^0.7.0",
+    "markdown-it": "^6.0.1",
     "urijs": "^1.18.0"
   },
   "devDependencies": {

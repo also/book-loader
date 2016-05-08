@@ -9,3 +9,9 @@ Some source:
 ```
 <%= require('raw!./source-example.js') %>
 ```
+
+Inline replaced: <%= 1+1 %>.
+
+Block replaced:
+
+<div><%= 2 + 2 %></div>

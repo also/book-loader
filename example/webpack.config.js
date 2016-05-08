@@ -12,7 +12,7 @@ module.exports = {
     // but not including it throws an error
     filename: '[name].js',
     path: 'dist',
-    publicPath: '/dist/'
+    publicPath: '/book/'
   },
   module: {
     loaders: [

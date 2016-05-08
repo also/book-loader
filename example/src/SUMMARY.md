@@ -4,3 +4,4 @@
   * [Section A](section-a.md)
 * [More](subdir/more.md)
 * [Run Script](run-script.md)
+* [Module Example](module-example.md)
