@@ -66,22 +66,13 @@ module.exports = function bookLoader(content) {
 		regExp: query.regExp
 	});
 
-  let htmlKey = 'html';
-  if (query.template || query.isTemplate) {
-    if (query.template === this.resourcePath || query.isTemplate) {
-      htmlKey = 'template';
-    } else {
-      content = `context
-      ? require(${JSON.stringify(query.template)}).template(Object.assign(Object.create(exports), {html: (context) => ${content}}))
-      : ${content}`
-    }
-  }
-
   return `Object.assign(exports, {
   toString: () => __webpack_public_path__ + ${JSON.stringify(url)},
   url: ${JSON.stringify(url)},
   filename: ${JSON.stringify(path.relative(context, this.resourcePath))},
-  ${htmlKey}: (context) => ${content},
+  html: (context) => ${content},
+  template: ${query.template ? `require(${JSON.stringify(query.template)})` : 'undefined'},
+  isTemplate: ${query.template === this.resourcePath || query.isTemplate},
   require: __webpack_require__
 })`;
 }

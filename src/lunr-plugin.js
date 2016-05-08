@@ -6,6 +6,7 @@ module.exports = class LunrPlugin {
     compiler.plugin('emit', (compilation, callback) => {
       const index = lunr(function() {
         this.ref('url');
+        this.field('title', {boost: 10});
         this.field('body');
       });
 
@@ -13,12 +14,15 @@ module.exports = class LunrPlugin {
 
       Object.keys(compilation.assets).forEach((k) => {
         if (k.match(/\.html$/)) {
-          const $ = cheerio.load(compilation.assets[k].source());
-          const main = $('main');
-          if (main) {
+          const asset = compilation.assets[k];
+          const $ = asset.$;
+          if ($) {
+            const body = $.root().text();
+
             const doc = {
               url: k,
-              body: main.text()
+              title: asset.title,
+              body
             };
             docs[k] = doc;
             index.add(doc);

@@ -1,3 +1,5 @@
+const cheerio = require('cheerio');
+
 module.exports = class BookPlugin {
   apply(compiler) {
     compiler.plugin('emit', (compilation, callback) => {
@@ -12,7 +14,8 @@ module.exports = class BookPlugin {
           return true;
         }
 
-        function addAsset({url, html}) {
+        function addAsset(mod) {
+          let {url, html, template} = mod;
           try {
             html = html(true);
           } catch (e) {
@@ -20,9 +23,28 @@ module.exports = class BookPlugin {
             compilation.errors.push(e);
             html = `build error`;
           }
+
+          const $ = cheerio.load(html);
+
+          const titleElt = $('h1, h2');
+          let title = null;
+          if (titleElt.length === 0) {
+            const e = new Error(`No h1 or h2`);
+            e.file = url;
+            compilation.warnings.push(e);
+          } else {
+            title = titleElt.first().text();
+          }
+
+          if (template) {
+            html = template.html(Object.assign({}, mod, {title, html: () => html}));
+          }
+
           compilation.assets[url] = {
             source: () => html,
-            size: () => html.length
+            size: () => html.length,
+            $,
+            title
           };
         }
 
@@ -31,7 +53,7 @@ module.exports = class BookPlugin {
         main.require.m.forEach((def, i) => {
           if (def) {
             const mod = main.require(i);
-            if (mod.html && mod.url) {
+            if (mod.html && mod.url && !mod.isTemplate) {
               addAsset(mod);
             }
           }
