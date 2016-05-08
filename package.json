@@ -5,7 +5,9 @@
     "marked": "^0.3.5"
   },
   "dependencies": {
+    "cheerio": "^0.20.0",
     "loader-utils": "^0.2.14",
+    "lunr": "^0.7.0",
     "urijs": "^1.18.0"
   },
   "devDependencies": {
