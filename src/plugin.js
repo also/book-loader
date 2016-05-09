@@ -15,7 +15,11 @@ module.exports = class BookPlugin {
         }
 
         function addAsset(mod) {
-          let {url, html, attributes, template} = mod;
+          let {url, html, attributes={}, template} = mod;
+
+          // attributes is optional to return, but required for templates
+          mod = Object.assign({}, mod, {attributes});
+
           try {
             html = html(mod);
           } catch (e) {
@@ -26,14 +30,16 @@ module.exports = class BookPlugin {
 
           const $ = cheerio.load(html);
 
-          const titleElt = $('h1, h2');
-          let title = null;
-          if (titleElt.length === 0) {
-            const e = new Error(`No h1 or h2`);
-            e.file = url;
-            compilation.warnings.push(e);
-          } else {
-            title = titleElt.first().text();
+          let {title} = attributes;
+          if (!title) {
+            const titleElt = $('h1, h2');
+            if (titleElt.length === 0) {
+              const e = new Error(`No h1 or h2 or title attribute`);
+              e.file = url;
+              compilation.warnings.push(e);
+            } else {
+              title = titleElt.first().text();
+            }
           }
 
           if (template) {

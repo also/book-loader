@@ -16,11 +16,15 @@ module.exports = function bookLoader(content) {
 
   const context = query.context || this.options.context;
 
-  const url = attributes.url || loaderUtils.interpolateName(this, query.name || '[path][name].html', {
-    context,
-		content: content,
-		regExp: query.regExp
-	});
+  const url = attributes.hasOwnProperty('url')
+    ? attributes.url
+    : loaderUtils.interpolateName(this, query.name || '[path][name].html', {
+        context,
+        content: content,
+        regExp: query.regExp
+      });
+
+  const template = attributes.hasOwnProperty('template') ? attributes.template : query.template;
 
   return `const helpers = require('book-loader/helpers');
 ${Object.keys(helpers).map((k) => `const ${k} = helpers.${k};`).join('\n')}
@@ -35,9 +39,7 @@ exports.attributes = ${JSON.stringify(attributes, null, 2)};
 
 exports.html = (context) => ${content};
 
-exports.template = ${query.template ? `require(${JSON.stringify(query.template)})` : 'undefined'};
-
-exports.isTemplate = ${query.template === this.resourcePath || query.isTemplate || false};
+exports.template = ${template ? `require(${JSON.stringify(template)})` : 'undefined'};
 
 exports.require = __webpack_require__;
 `;
