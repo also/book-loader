@@ -15,9 +15,9 @@ module.exports = class BookPlugin {
         }
 
         function addAsset(mod) {
-          let {url, html, template} = mod;
+          let {url, html, attributes, template} = mod;
           try {
-            html = html(true);
+            html = html(mod);
           } catch (e) {
             e.file = url;
             compilation.errors.push(e);

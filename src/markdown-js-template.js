@@ -136,7 +136,9 @@ function templateTokenize(state) {
 
 module.exports = function(md) {
   md.core.ruler.push('js-template', templateTokenize);
+
   md.renderer.rules.javascript = (tokens, idx, options, env) => replace(env, tokens[idx].content);
+
   const fence = md.renderer.rules.fence;
   md.renderer.rules.fence = (tokens, idx, options, env, slf) => {
     const token = tokens[idx];
