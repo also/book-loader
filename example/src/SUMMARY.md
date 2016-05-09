@@ -4,3 +4,4 @@
 * [Run Script](run-script.md)
 * [Module Example](module-example.md)
 * [Custom URL](custom-url.md)
+* [JavaScript Module](js-module.js)
