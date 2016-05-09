@@ -75,10 +75,7 @@ function splitJavaScriptTokens(token) {
 
 function replaceJavaScriptAttrs(attrs, env) {
   return attrs.map(([name, value]) => {
-    const processedValue = preprocess(env, value);
-    if (processedValue !== value) {
-      value = processedValue;
-    } else if (name === 'src' || name === 'href') {
+    if (name === 'src' || name === 'href') {
       value = replace(env, urlJs(value));
     }
 
