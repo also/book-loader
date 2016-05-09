@@ -6,7 +6,7 @@ const Renderer = require('markdown-it/lib/renderer');
 
 
 function createTemplatePattern() {
-  return /<%=([\s\S]+?)%>/g;
+  return /<%(=|-)([\s\S]+?)%>/g;
 }
 
 function urlJs(url) {
@@ -22,7 +22,12 @@ function preprocess(env, content) {
   if (!content.replace) {
     return content;
   }
-  return content.replace(createTemplatePattern(), (match, js) => replace(env, js));
+  return content.replace(createTemplatePattern(), (match, type, js) => {
+    if (type === '-') {
+      js = `escapeHtml(${js})`;
+    }
+    return replace(env, js);
+  });
 }
 
 function replace(env, js) {
@@ -45,19 +50,25 @@ function splitJavaScriptTokens(token) {
     return [token]
   } else {
     const replacementTokens = [];
-    parts.forEach((s, i) => {
-      if (i % 2 === 0) {
-        if (s.length > 0) {
-          const replacement = Object.create(token);
-          replacement.content = s;
-          replacementTokens.push(replacement);
-        }
-      } else {
-        const replacement = new Token('javascript', '', 0);
-        replacement.content = s;
+    for (let i = 0; i < parts.length; i += 3) {
+      const raw = parts[i];
+      if (raw.length > 0) {
+        const replacement = Object.create(token);
+        replacement.content = raw;
         replacementTokens.push(replacement);
       }
-    });
+      const type = parts[i + 1];
+      if (type) {
+        let js = parts[i + 2];
+        if (type === '-') {
+          js = `escapeHtml(${js})`;
+        }
+        const replacement = new Token('javascript', '', 0);
+        replacement.content = js;
+        replacementTokens.push(replacement);
+      }
+    }
+
     return replacementTokens;
   }
 }

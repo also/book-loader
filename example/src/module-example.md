@@ -2,8 +2,8 @@
 
 ## This
 
-<pre><%= escapeHtml(require('!!raw!./module-example.md')) %></pre>
+<pre><%- require('!!raw!./module-example.md') %></pre>
 
 ## Turns into this
 
-<pre><%= escapeHtml(require('raw!./module-example.md')) %></pre>
+<pre><%- require('raw!./module-example.md') %></pre>
