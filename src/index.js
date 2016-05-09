@@ -16,7 +16,7 @@ module.exports = function bookLoader(content) {
 
   const context = query.context || this.options.context;
 
-  const url = loaderUtils.interpolateName(this, query.name || '[path][name].html', {
+  const url = attributes.url || loaderUtils.interpolateName(this, query.name || '[path][name].html', {
     context,
 		content: content,
 		regExp: query.regExp
