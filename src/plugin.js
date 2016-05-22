@@ -1,11 +1,21 @@
 const cheerio = require('cheerio');
 
+const SingleEntryPlugin = require('webpack/lib/SingleEntryPlugin');
+
 module.exports = class BookPlugin {
+  constructor(options) {
+    this.options = options;
+  }
+
   apply(compiler) {
+    this.options.entry.forEach((entry) => {
+      compiler.apply(new SingleEntryPlugin(compiler.options.context, entry, `book-loader-${entry}`));
+    });
+
     compiler.plugin('emit', (compilation, callback) => {
       compilation.chunks = compilation.chunks.filter((chunk) => {
         // skip chunks without a book entry point
-        if (!chunk.entryModule.loaders.find((s) => s.indexOf('book-loader/index.js') >= 0)) {
+        if (!(chunk.entryModule.loaders || []).find((s) => s.indexOf('book-loader/index.js') >= 0)) {
           return true;
         }
 
