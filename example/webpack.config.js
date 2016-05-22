@@ -5,11 +5,8 @@ const src = path.join(__dirname, 'src');
 
 module.exports = {
   context: src,
-  entry: './SUMMARY.md',
+  entry: {},
   output: {
-    // TODO I think this is the default
-    // https://gist.github.com/sokra/27b24881210b56bbaff7#gistcomment-1741297
-    // but not including it throws an error
     filename: '[name].js',
     path: 'dist',
     publicPath: '/book/'
@@ -29,5 +26,5 @@ module.exports = {
       }
     ]
   },
-  plugins: [new BookPlugin()]
+  plugins: [new BookPlugin({entry: ['./SUMMARY.md']})]
 }
