@@ -56,12 +56,11 @@ module.exports = class BookPlugin {
 
         const mainSource = compilation.assets[files[0]].source();
         const main = eval(mainSource);
-        main.require.m.forEach((def, i) => {
-          if (def) {
-            const mod = main.require(i);
-            if (mod.html && mod.url && !mod.isTemplate) {
-              addAsset(mod);
-            }
+        const modules = main.require.m;
+        Object.keys(modules).forEach((k) => {
+          const mod = main.require(k);
+          if (mod && mod.html && mod.url && !mod.isTemplate) {
+            addAsset(mod);
           }
         });
 
