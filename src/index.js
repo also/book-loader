@@ -1,18 +1,24 @@
 const path = require('path');
 const loaderUtils = require('loader-utils');
 const fm = require('front-matter');
-const template = require('./markdown-js-template');
+const markdownJsTemplate = require('./markdown-js-template');
+const {apply: jsTemplate} = require('./template');
 const helpers = require('./helpers');
 
 
-const md = require('markdown-it')({html: true}).use(template);
+const md = require('markdown-it')({html: true}).use(markdownJsTemplate);
 
 module.exports = function bookLoader(content) {
   this.cacheable(true);
   const query = loaderUtils.parseQuery(this.query);
 
   const {attributes, body} = fm(content);
-  content = md.render(body);
+
+  if (query.markdown === false || attributes.markdown === false) {
+    content = jsTemplate(body);
+  } else {
+    content = md.render(body);
+  }
 
   const context = query.context || this.options.context;
 

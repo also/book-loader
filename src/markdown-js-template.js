@@ -4,10 +4,15 @@ const Token = require('markdown-it/lib/token');
 const {escapeHtml, arrayReplaceAt} = require('markdown-it/lib/common/utils');
 const Renderer = require('markdown-it/lib/renderer');
 
+const {
+  create,
+  createTemplatePattern,
+  preprocess,
+  replace,
+  postprocess,
+  generator
+} = require('./template');
 
-function createTemplatePattern() {
-  return /<%(=|-)([\s\S]+?)%>/g;
-}
 
 function urlJs(url) {
   if (!loaderUtils.isUrlRequest(url)) {
@@ -18,59 +23,18 @@ function urlJs(url) {
   return `(() => {try {return require(${JSON.stringify(path)})${hash ? ` + '#' + ${JSON.stringify(hash)}` : ''}} catch (e) {return ${JSON.stringify(url)}}})()`;
 }
 
-function preprocess(env, content) {
-  if (!content.replace) {
-    return content;
-  }
-  return content.replace(createTemplatePattern(), (match, type, js) => {
-    if (type === '-') {
-      js = `escapeHtml(${js})`;
-    }
-    return replace(env, js);
-  });
-}
-
-function replace(env, js) {
-  env.jsTemplateReplacements.push(js);
-  return `~~ replacement ${env.jsTemplateReplacements.length - 1} ~~`;
-}
-
-function postprocess(env, content) {
-  const replacements = env.jsTemplateReplacements;
-  return content.split(/~~ replacement (\d+) ~~/g)
-    .map((s, i) => {
-      return (i % 2 == 0) ? JSON.stringify(s) : `(${replacements[parseInt(s)]})`
-    })
-    .join(' +\n    ');
-}
-
 function splitJavaScriptTokens(token) {
-  const parts = token.content.split(createTemplatePattern());
-  if (parts.length === 1) {
-    return [token]
-  } else {
-    const replacementTokens = [];
-    for (let i = 0; i < parts.length; i += 3) {
-      const raw = parts[i];
-      if (raw.length > 0) {
-        const replacement = Object.create(token);
-        replacement.content = raw;
-        replacementTokens.push(replacement);
-      }
-      const type = parts[i + 1];
-      if (type) {
-        let js = parts[i + 2];
-        if (type === '-') {
-          js = `escapeHtml(${js})`;
-        }
-        const replacement = new Token('javascript', '', 0);
-        replacement.content = js;
-        replacementTokens.push(replacement);
-      }
+  return Array.from(generator(token.content), ({raw, js}) => {
+    let replacement;
+    if (js) {
+      replacement = new Token('javascript', '', 0);
+      replacement.content = js;
+    } else {
+      replacement = Object.create(token);
+      replacement.content = raw;
     }
-
-    return replacementTokens;
-  }
+    return replacement;
+  });
 }
 
 function replaceJavaScriptAttrs(attrs, env) {
@@ -130,7 +94,7 @@ function promoteBlockJavaScript(tokens) {
 }
 
 function templateTokenize(state) {
-  state.env.jsTemplateReplacements = [];
+  Object.assign(state.env, create());
   state.tokens = promoteBlockJavaScript(expandJavaScriptTokens(state.tokens, state.env));
 }
 
