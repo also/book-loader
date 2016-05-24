@@ -10,6 +10,7 @@ const markdownIt = require('markdown-it');
 module.exports = function bookLoader(content) {
   this.cacheable(true);
   const query = loaderUtils.parseQuery(this.query);
+  const {toc} = query;
 
   const {attributes, body} = fm(content);
 
@@ -50,6 +51,8 @@ exports.attributes = ${JSON.stringify(attributes, null, 2)};
 exports.html = (context) => ${content};
 
 exports.template = ${template ? `require(${JSON.stringify(template)})` : 'undefined'};
+
+exports.toc = ${toc ? `require.resolve(${JSON.stringify(toc)})` : 'undefined'};
 
 exports.require = __webpack_require__;
 `;

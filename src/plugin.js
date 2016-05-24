@@ -30,11 +30,36 @@ module.exports = class BookPlugin {
           return true;
         }
 
+        let bookRequire;
+
         function addAsset(mod) {
-          let {url, html, attributes={}, template} = mod;
+          let {url, html, attributes={}, template, toc} = mod;
+          const publicUrl = mod.toString();
+
+          let pages = [];
+
+          if (toc) {
+            const tocModule = bookRequire(toc);
+            if (tocModule.pages) {
+              pages = tocModule.pages;
+            } else {
+              const $ = cheerio.load(tocModule.html());
+              pages = tocModule.pages = $('a').toArray().map((a) => {
+                a = $(a);
+                return {url: a.attr('href'), title: a.text()}
+              });
+            }
+          }
+
+          const pageIndex = pages.findIndex(({url: tocUrl}) => publicUrl === tocUrl);
+          let previous, next;
+          if (pageIndex !== -1) {
+            previous = pages[pageIndex - 1];
+            next = pages[pageIndex + 1];
+          }
 
           // attributes is optional to return, but required for templates
-          mod = Object.assign({}, mod, {attributes});
+          mod = Object.assign({}, mod, {previous, next}, {attributes});
 
           try {
             html = html(mod);
@@ -72,9 +97,10 @@ module.exports = class BookPlugin {
 
         const mainSource = compilation.assets[files[0]].source();
         const main = eval(mainSource);
-        const modules = main.require.m;
+        bookRequire = main.require;
+        const modules = bookRequire.m;
         Object.keys(modules).forEach((k) => {
-          const mod = main.require(k);
+          const mod = bookRequire(k);
           if (mod && mod.html && mod.url && !mod.isTemplate) {
             addAsset(mod);
           }
