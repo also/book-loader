@@ -12,6 +12,12 @@ module.exports = class BookPlugin {
       compiler.apply(new SingleEntryPlugin(compiler.options.context, entry, `book-loader-${entry}`));
     });
 
+    compiler.plugin("compilation", (compilation) => {
+      compilation.plugin("normal-module-loader", (context, module) => {
+        context.bookLoaderOptions = this.options;
+      });
+    });
+
     compiler.plugin('emit', (compilation, callback) => {
       compilation.chunks = compilation.chunks.filter((chunk) => {
         // skip chunks without a book entry point

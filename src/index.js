@@ -4,9 +4,8 @@ const fm = require('front-matter');
 const markdownJsTemplate = require('./markdown-js-template');
 const {apply: jsTemplate} = require('./template');
 const helpers = require('./helpers');
+const markdownIt = require('markdown-it');
 
-
-const md = require('markdown-it')({html: true}).use(markdownJsTemplate);
 
 module.exports = function bookLoader(content) {
   this.cacheable(true);
@@ -17,6 +16,11 @@ module.exports = function bookLoader(content) {
   if (query.markdown === false || attributes.markdown === false) {
     content = jsTemplate(body);
   } else {
+    const {bookLoaderOptions={}} = this;
+    const md = markdownIt(Object.assign({html: true}, bookLoaderOptions.markdownOptions)).use(markdownJsTemplate);
+    if (bookLoaderOptions.markdownPlugins) {
+      bookLoaderOptions.markdownPlugins.forEach(md.use.bind(md));
+    }
     content = md.render(body);
   }
 
