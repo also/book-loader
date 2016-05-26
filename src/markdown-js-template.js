@@ -16,7 +16,7 @@ const {
 
 function urlJs(url) {
   if (!loaderUtils.isUrlRequest(url)) {
-    return JSON.stringify(url);
+    return null;
   }
   url = loaderUtils.urlToRequest(url);
   const [path, hash] = url.split('#');
@@ -40,7 +40,10 @@ function splitJavaScriptTokens(token) {
 function replaceJavaScriptAttrs(attrs, env) {
   return attrs.map(([name, value]) => {
     if (name === 'src' || name === 'href') {
-      value = replace(env, urlJs(value));
+      const replacement = urlJs(value);
+      if (replacement) {
+        value = replace(env, replacement);
+      }
     }
 
     return [name, value];
