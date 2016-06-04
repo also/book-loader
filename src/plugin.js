@@ -99,7 +99,12 @@ module.exports = class BookPlugin {
         const main = eval(mainSource);
         bookRequire = main.require;
         const modules = bookRequire.m;
+        const installedModules = bookRequire.c;
         Object.keys(modules).forEach((k) => {
+          // TODO why are modules that throw errors ending up in the cache?
+          if (installedModules[k] && !installedModules[k].l) {
+            delete installedModules[k];
+          }
           const mod = bookRequire(k);
           if (mod && mod.html && mod.url && !mod.isTemplate) {
             addAsset(mod);
