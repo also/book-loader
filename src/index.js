@@ -37,7 +37,7 @@ module.exports = function bookLoader(content) {
 
   const template = attributes.hasOwnProperty('template') ? attributes.template : query.template;
 
-  return `const helpers = require('book-loader/helpers');
+  return `const helpers = __non_webpack_require__(${JSON.stringify(require.resolve('./helpers'))});
 ${Object.keys(helpers).map((k) => `const ${k} = helpers.${k};`).join('\n')}
 
 exports.toString = () => __webpack_public_path__ + ${JSON.stringify(url)};

@@ -20,7 +20,11 @@ function urlJs(url) {
   }
   url = loaderUtils.urlToRequest(url);
   const [path, hash] = url.split('#');
-  return `(() => {try {return require(${JSON.stringify(path)})${hash ? ` + '#' + ${JSON.stringify(hash)}` : ''}} catch (e) {return ${JSON.stringify(url)}}})()`;
+  let result = `book.pageUrl(${JSON.stringify(path)})`;
+  if (hash) {
+    result += ` + '#' + ${JSON.stringify(hash)}`;
+  }
+  return result;
 }
 
 function splitJavaScriptTokens(token) {

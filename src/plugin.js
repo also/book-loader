@@ -2,6 +2,9 @@ const cheerio = require('cheerio');
 
 const SingleEntryPlugin = require('webpack/lib/SingleEntryPlugin');
 
+const PageUrlDependency = require('./PageUrlDependency');
+
+
 module.exports = class BookPlugin {
   constructor(options) {
     this.options = options;
@@ -12,10 +15,23 @@ module.exports = class BookPlugin {
       compiler.apply(new SingleEntryPlugin(compiler.options.context, entry, `book-loader-${entry}`));
     });
 
-    compiler.plugin("compilation", (compilation) => {
-      compilation.plugin("normal-module-loader", (context, module) => {
+    compiler.plugin('compilation', (compilation, {normalModuleFactory}) => {
+      compilation.plugin('normal-module-loader', (context, module) => {
         context.bookLoaderOptions = this.options;
       });
+
+      compilation.dependencyFactories.set(PageUrlDependency, normalModuleFactory);
+      compilation.dependencyTemplates.set(PageUrlDependency, new PageUrlDependency.Template());
+    });
+
+    compiler.parser.plugin('call book.pageUrl', function (expr) {
+      var param = this.evaluateExpression(expr.arguments[0]);
+      if (param.isString()) {
+        var dep = new PageUrlDependency(param.string, expr.range);
+        dep.loc = expr.loc;
+        this.state.current.addDependency(dep);
+        return true;
+      }
     });
 
     compiler.plugin('emit', (compilation, callback) => {
@@ -95,21 +111,25 @@ module.exports = class BookPlugin {
           };
         }
 
-        const mainSource = compilation.assets[files[0]].source();
-        const main = eval(mainSource);
-        bookRequire = main.require;
-        const modules = bookRequire.m;
-        const installedModules = bookRequire.c;
-        Object.keys(modules).forEach((k) => {
-          // TODO why are modules that throw errors ending up in the cache?
-          if (installedModules[k] && !installedModules[k].l) {
-            delete installedModules[k];
-          }
-          const mod = bookRequire(k);
-          if (mod && mod.html && mod.url && !mod.isTemplate) {
-            addAsset(mod);
-          }
-        });
+        try {
+          const mainSource = compilation.assets[files[0]].source();
+          const main = eval(mainSource);
+          bookRequire = main.require;
+          const modules = bookRequire.m;
+          const installedModules = bookRequire.c;
+          Object.keys(modules).forEach((k) => {
+            // TODO why are modules that throw errors ending up in the cache?
+            if (installedModules[k] && !installedModules[k].l) {
+              delete installedModules[k];
+            }
+            const mod = bookRequire(k);
+            if (mod && mod.html && mod.url && !mod.isTemplate) {
+              addAsset(mod);
+            }
+          });
+        } catch (e) {
+          compilation.errors.push(e);
+        }
 
         delete compilation.assets[files[0]];
 
