@@ -1,5 +1,6 @@
+const vm = require('vm');
+const Module = require("module");
 const cheerio = require('cheerio');
-
 const SingleEntryPlugin = require('webpack/lib/SingleEntryPlugin');
 
 const PageUrlDependency = require('./PageUrlDependency');
@@ -81,6 +82,7 @@ module.exports = class BookPlugin {
             html = html(mod);
           } catch (e) {
             e.file = url;
+            e.details = e.stack;
             compilation.errors.push(e);
             html = `build error`;
           }
@@ -113,7 +115,14 @@ module.exports = class BookPlugin {
 
         try {
           const mainSource = compilation.assets[files[0]].source();
-          const main = eval(mainSource);
+
+          const filename = chunk.entryModule.resource;
+          const m = new Module(filename, chunk.entryModule);
+          m.paths = Module._nodeModulePaths(chunk.entryModule.context);
+          m.filename = filename;
+          m._compile(`module.exports = ${mainSource}`, filename);
+          const main = m.exports;
+
           bookRequire = main.require;
           const modules = bookRequire.m;
           const installedModules = bookRequire.c;
@@ -127,11 +136,11 @@ module.exports = class BookPlugin {
               addAsset(mod);
             }
           });
+          delete compilation.assets[files[0]];
         } catch (e) {
+          e.details = e.stack;
           compilation.errors.push(e);
         }
-
-        delete compilation.assets[files[0]];
 
         return false;
       });
