@@ -12,13 +12,14 @@ module.exports = class BookPlugin {
   }
 
   apply(compiler) {
-    this.options.entry.forEach((entry) => {
+    const {options} = this;
+    options.entry.forEach((entry) => {
       compiler.apply(new SingleEntryPlugin(compiler.options.context, entry, `book-loader-${entry}`));
     });
 
     compiler.plugin('compilation', (compilation, {normalModuleFactory}) => {
       compilation.plugin('normal-module-loader', (context, module) => {
-        context.bookLoaderOptions = this.options;
+        context.bookLoaderOptions = options;
       });
 
       compilation.dependencyFactories.set(PageUrlDependency, normalModuleFactory);
@@ -76,7 +77,7 @@ module.exports = class BookPlugin {
           }
 
           // attributes is optional to return, but required for templates
-          mod = Object.assign({}, mod, {previous, next}, {attributes});
+          mod = Object.assign({}, mod, {previous, next, attributes, options});
 
           try {
             html = html(mod);
