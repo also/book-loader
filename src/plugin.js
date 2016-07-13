@@ -56,7 +56,7 @@ module.exports = class BookPlugin {
 
           let pages = [];
 
-          if (toc) {
+          if (toc != null) {
             const tocModule = bookRequire(toc);
             if (tocModule.pages) {
               pages = tocModule.pages;
