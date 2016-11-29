@@ -139,6 +139,9 @@ module.exports = class BookPlugin {
             if (mod && mod.html && mod.url && !mod.isTemplate) {
               addAsset(mod);
             }
+            if (mod.renderPages) {
+              mod.renderPages.forEach((page) => addAsset(page));
+            }
           });
           delete compilation.assets[files[0]];
         } catch (e) {
