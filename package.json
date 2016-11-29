@@ -1,6 +1,6 @@
 {
   "name": "book-loader",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "dependencies": {
     "cheerio": "^0.20.0",
     "front-matter": "^2.0.7",
