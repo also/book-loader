@@ -1,12 +1,9 @@
 const loaderUtils = require('loader-utils');
-const MarkdownIt = require('markdown-it');
 const Token = require('markdown-it/lib/token');
-const {escapeHtml, arrayReplaceAt} = require('markdown-it/lib/common/utils');
-const Renderer = require('markdown-it/lib/renderer');
+
 
 const {
   create,
-  createTemplatePattern,
   preprocess,
   replace,
   postprocess,
@@ -121,4 +118,4 @@ module.exports = function(md) {
 
   const render = md.renderer.render;
   md.renderer.render = (tokens, options, env) => postprocess(env, render.call(md.renderer, tokens, options, env));
-}
+};

@@ -30,10 +30,10 @@ module.exports = function bookLoader(content) {
   const url = attributes.hasOwnProperty('url')
     ? attributes.url
     : loaderUtils.interpolateName(this, query.name || '[path][name].html', {
-        context,
-        content: content,
-        regExp: query.regExp
-      });
+      context,
+      content: content,
+      regExp: query.regExp
+    });
 
   const template = attributes.hasOwnProperty('template') ? attributes.template : query.template;
 
@@ -56,4 +56,4 @@ exports.toc = ${toc ? `require.resolve(${JSON.stringify(toc)})` : 'undefined'};
 
 exports.require = __webpack_require__;
 `;
-}
+};

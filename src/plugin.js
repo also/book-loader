@@ -1,5 +1,4 @@
-const vm = require('vm');
-const Module = require("module");
+const Module = require('module');
 const cheerio = require('cheerio');
 const SingleEntryPlugin = require('webpack/lib/SingleEntryPlugin');
 
@@ -18,7 +17,7 @@ module.exports = class BookPlugin {
     });
 
     compiler.plugin('compilation', (compilation, {normalModuleFactory}) => {
-      compilation.plugin('normal-module-loader', (context, module) => {
+      compilation.plugin('normal-module-loader', (context) => {
         context.bookLoaderOptions = options;
       });
 
@@ -64,7 +63,7 @@ module.exports = class BookPlugin {
               const $ = cheerio.load(tocModule.html());
               pages = tocModule.pages = $('a').toArray().map((a) => {
                 a = $(a);
-                return {url: a.attr('href'), title: a.text()}
+                return {url: a.attr('href'), title: a.text()};
               });
             }
           }

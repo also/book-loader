@@ -1,4 +1,7 @@
+/* eslint-env browser */
+/* globals __webpack_public_path__ */
 const lunr = require('lunr');
+
 
 exports.loadIndex = function loadIndex(path=`${__webpack_public_path__}search-index.json`) {
   var req = new XMLHttpRequest();
@@ -16,10 +19,10 @@ exports.loadIndex = function loadIndex(path=`${__webpack_public_path__}search-in
     });
     req.addEventListener('error', () => reject(new Error(`Failed loading ${path}`)));
   });
-}
+};
 
 exports.search = function search({docs, index}, query) {
   return index.search(query).map((result) => {
     return docs[result.ref];
-  })
-}
+  });
+};

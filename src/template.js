@@ -27,13 +27,12 @@ function postprocess(env, content) {
   const replacements = env.jsTemplateReplacements;
   return content.split(/~~ replacement (\d+) ~~/g)
     .map((s, i) => {
-      return (i % 2 == 0) ? JSON.stringify(s) : `(${replacements[parseInt(s)]})`
+      return (i % 2 == 0) ? JSON.stringify(s) : `(${replacements[parseInt(s)]})`;
     })
     .join(' +\n    ');
 }
 
 function* generator(s) {
-  const env = create();
   const parts = s.split(createTemplatePattern());
   for (let i = 0; i < parts.length; i += 3) {
     const raw = parts[i];

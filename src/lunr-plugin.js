@@ -1,5 +1,5 @@
-const cheerio = require('cheerio');
 const lunr = require('lunr');
+
 
 module.exports = class LunrPlugin {
   apply(compiler) {

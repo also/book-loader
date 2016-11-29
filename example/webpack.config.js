@@ -27,4 +27,4 @@ module.exports = {
     ]
   },
   plugins: [new BookPlugin({entry: ['./SUMMARY.md']})]
-}
+};
