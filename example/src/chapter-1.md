@@ -7,7 +7,7 @@ An image:
 Some source:
 
 ```
-<%= require('raw!./source-example.js') %>
+<%= require('raw-loader!./source-example.js') %>
 ```
 
 Inline replaced: <%= 1+1 %>.

@@ -25,20 +25,24 @@ module.exports = class BookPlugin {
       compilation.dependencyTemplates.set(PageUrlDependency, new PageUrlDependency.Template());
     });
 
-    compiler.parser.plugin('call book.pageUrl', function (expr) {
-      var param = this.evaluateExpression(expr.arguments[0]);
-      if (param.isString()) {
-        var dep = new PageUrlDependency(param.string, expr.range);
-        dep.loc = expr.loc;
-        this.state.current.addDependency(dep);
-        return true;
-      }
+    compiler.plugin('compilation', (compilation, {normalModuleFactory}) => {
+      normalModuleFactory.plugin('parser', (parser) => {
+        parser.plugin('call book.pageUrl', function (expr) {
+          var param = this.evaluateExpression(expr.arguments[0]);
+          if (param.isString()) {
+            var dep = new PageUrlDependency(param.string, expr.range);
+            dep.loc = expr.loc;
+            this.state.current.addDependency(dep);
+            return true;
+          }
+        });
+      });
     });
 
     compiler.plugin('emit', (compilation, callback) => {
       compilation.chunks = compilation.chunks.filter((chunk) => {
         // skip chunks without a book entry point
-        if (!(chunk.entryModule.loaders || []).find((s) => s.indexOf('book-loader/index.js') >= 0)) {
+        if (!(chunk.entryModule.loaders || []).find((s) => s.loader.indexOf('book-loader/index.js') >= 0)) {
           return true;
         }
 

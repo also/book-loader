@@ -16,13 +16,13 @@ module.exports = {
       {
         test: /\.md$/,
         loaders: [{
-          loader: 'book',
+          loader: 'book-loader',
           query: {template: path.join(src, 'template.md')}
         }]
       },
       {
         test: /\.(png)$/,
-        loader: 'file'
+        loader: 'file-loader'
       }
     ]
   },

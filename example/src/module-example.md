@@ -5,8 +5,8 @@ key: value
 
 ## This
 
-<pre><%- require('!!raw!./module-example.md') %></pre>
+<pre><%- require('!!raw-loader!./module-example.md') %></pre>
 
 ## Turns into this
 
-<pre><%- require('raw!./module-example.md') %></pre>
+<pre><%- require('raw-loader!./module-example.md') %></pre>
