@@ -1,0 +1,11 @@
+exports[`test allows templates in code blocks 1`] = `
+"\"<pre><code>\" +
+    ( require(\"content\") ) +
+    \"\\n</code></pre>\\n\""
+`;
+
+exports[`test handles links 1`] = `
+"\"<p><a href=\\\"\" +
+    (book.pageUrl(\"./test.md\")) +
+    \"\\\">a test</a></p>\\n\""
+`;
