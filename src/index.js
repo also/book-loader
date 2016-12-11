@@ -37,12 +37,16 @@ module.exports = function bookLoader(content) {
 
   const template = attributes.hasOwnProperty('template') ? attributes.template : query.template;
 
+  const emit = !![attributes.emit, query.emit, url].find((o) => typeof o !== 'undefined');
+
   return `const helpers = __non_webpack_require__(${JSON.stringify(require.resolve('./helpers'))});
 ${Object.keys(helpers).map((k) => `const ${k} = helpers.${k};`).join('\n')}
 
 exports.toString = () => __webpack_public_path__ + ${JSON.stringify(url)};
 
 exports.url = ${JSON.stringify(url)};
+
+exports.emit = ${emit};
 
 exports.filename = ${JSON.stringify(path.relative(context, this.resourcePath))};
 

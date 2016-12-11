@@ -137,7 +137,7 @@ module.exports = class BookPlugin {
             }
             const mod = bookRequire(k);
             if (mod) {
-              if (mod.html && mod.url && !mod.isTemplate) {
+              if (mod.html && mod.url && !mod.isTemplate && mod.emit !== false) {
                 addAsset(mod);
               }
               if (mod.renderPages) {
