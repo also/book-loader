@@ -2,6 +2,7 @@ language: node_js
 node_js:
   - "4.1"
 before_script:
+  - yarn test
   - npm pack
   - cd example && npm i ../book-loader-*.tgz && npm i
 script: npm run build
