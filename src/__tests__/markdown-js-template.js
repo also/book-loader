@@ -10,6 +10,18 @@ test('handles links', () => {
   expect(result).toMatchSnapshot();
 });
 
+test('handles hashes in links', () => {
+  const md = createMd();
+  const result = md.render('[a test](test.md#section)');
+  expect(result).toMatchSnapshot();
+});
+
+test('ignores complete urls in links', () => {
+  const md = createMd();
+  const result = md.render('[a test](http://example.com/test.md#section)');
+  expect(result).toMatchSnapshot();
+});
+
 test('handles templates in code blocks', () => {
   const md = createMd();
   const result = md.render('```\n<%= require("content") %>\n```');

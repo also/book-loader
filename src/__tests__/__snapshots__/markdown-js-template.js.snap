@@ -1,3 +1,9 @@
+exports[`test handles hashes in links 1`] = `
+"\"<p><a href=\\\"\" +
+    (book.pageUrl(\"./test.md\") + \'#\' + \"section\") +
+    \"\\\">a test</a></p>\\n\""
+`;
+
 exports[`test handles links 1`] = `
 "\"<p><a href=\\\"\" +
     (book.pageUrl(\"./test.md\")) +
@@ -39,3 +45,5 @@ exports[`test handles templates in markdown blocks 1`] = `
     ( variable ) +
     \"</p>\\n\""
 `;
+
+exports[`test ignores complete urls in links 1`] = `"\"<p><a href=\\\"http://example.com/test.md#section\\\">a test</a></p>\\n\""`;
