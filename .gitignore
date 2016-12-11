@@ -2,4 +2,4 @@ node_modules
 /*.js
 !.eslintrc.js
 coverage
-__tests__
+/__tests__
