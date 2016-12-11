@@ -136,11 +136,13 @@ module.exports = class BookPlugin {
               delete installedModules[k];
             }
             const mod = bookRequire(k);
-            if (mod && mod.html && mod.url && !mod.isTemplate) {
-              addAsset(mod);
-            }
-            if (mod.renderPages) {
-              mod.renderPages.forEach((page) => addAsset(page));
+            if (mod) {
+              if (mod.html && mod.url && !mod.isTemplate) {
+                addAsset(mod);
+              }
+              if (mod.renderPages) {
+                mod.renderPages.forEach((page) => addAsset(page));
+              }
             }
           });
           delete compilation.assets[files[0]];
