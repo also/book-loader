@@ -1,0 +1,10 @@
+exports[`test does simple interpolation 1`] = `
+Object {
+  "env": Object {
+    "jsTemplateReplacements": Array [
+      " require(\"test\") ",
+    ],
+  },
+  "result": "~~ replacement 0 ~~",
+}
+`;
