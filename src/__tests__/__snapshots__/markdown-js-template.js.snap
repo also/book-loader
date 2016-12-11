@@ -1,11 +1,41 @@
-exports[`test allows templates in code blocks 1`] = `
+exports[`test handles links 1`] = `
+"\"<p><a href=\\\"\" +
+    (book.pageUrl(\"./test.md\")) +
+    \"\\\">a test</a></p>\\n\""
+`;
+
+exports[`test handles templates at top level 1`] = `
+"\"<h1>check out this variable</h1>\\n\" +
+    ( variable ) +
+    \"\""
+`;
+
+exports[`test handles templates in code blocks 1`] = `
 "\"<pre><code>\" +
     ( require(\"content\") ) +
     \"\\n</code></pre>\\n\""
 `;
 
-exports[`test handles links 1`] = `
-"\"<p><a href=\\\"\" +
-    (book.pageUrl(\"./test.md\")) +
-    \"\\\">a test</a></p>\\n\""
+exports[`test handles templates in html block tags 1`] = `
+"\"<p>\" +
+    ( variable ) +
+    \"</p>\""
+`;
+
+exports[`test handles templates in html block tags 2`] = `
+"\"<p>here is a variable: \" +
+    ( variable ) +
+    \"!</p>\""
+`;
+
+exports[`test handles templates in inline html 1`] = `
+"\"<p>Check out this variable: <code>\" +
+    ( variable ) +
+    \"</code></p>\\n\""
+`;
+
+exports[`test handles templates in markdown blocks 1`] = `
+"\"<p>Check out this variable: \" +
+    ( variable ) +
+    \"</p>\\n\""
 `;
