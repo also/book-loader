@@ -1,0 +1,66 @@
+exports[`test applies templates 1`] = `
+"( variable1 ) +
+    (escapeHtml( variable2 )) +
+    \" and \" +
+    ( variable3 )"
+`;
+
+exports[`test creates generators 1`] = `
+Object {
+  "js": " variable1 ",
+  "rawJs": " variable1 ",
+}
+`;
+
+exports[`test creates generators 2`] = `
+Object {
+  "js": "escapeHtml( variable2 )",
+  "rawJs": " variable2 ",
+}
+`;
+
+exports[`test creates generators 3`] = `
+Object {
+  "raw": " and ",
+}
+`;
+
+exports[`test creates generators 4`] = `
+Object {
+  "js": " variable3 ",
+  "rawJs": " variable3 ",
+}
+`;
+
+exports[`test does simple interpolation 1`] = `
+Object {
+  "jsTemplateReplacements": Array [],
+}
+`;
+
+exports[`test does simple interpolation 2`] = `
+Object {
+  "jsTemplateReplacements": Array [
+    " variable1 ",
+    "escapeHtml( variable2 )",
+  ],
+}
+`;
+
+exports[`test does simple interpolation 3`] = `"~~ replacement 0 ~~ and ~~ replacement 1 ~~"`;
+
+exports[`test does simple interpolation 4`] = `
+"\"\" +
+    ( variable1 ) +
+    \" and \" +
+    (escapeHtml( variable2 )) +
+    \"\""
+`;
+
+exports[`test preprocess ignores non-strings 1`] = `
+Object {
+  "jsTemplateReplacements": Array [],
+}
+`;
+
+exports[`test preprocess ignores non-strings 2`] = `7`;

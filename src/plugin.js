@@ -51,9 +51,11 @@ module.exports = class BookPlugin {
           return true;
         }
 
+        const modulesById = new Map(chunk.modules.map((mod) => ['' + mod.id, mod]));
+
         let bookRequire;
 
-        function addAsset(mod) {
+        function addAsset(moduleId, mod) {
           let {url, html, attributes={}, template, toc} = mod;
           const publicUrl = mod.toString();
 
@@ -85,7 +87,7 @@ module.exports = class BookPlugin {
           try {
             html = html(mod);
           } catch (e) {
-            e.file = url;
+            e.module = modulesById.get(moduleId);
             e.details = e.stack;
             compilation.errors.push(e);
             html = `build error`;
@@ -98,7 +100,7 @@ module.exports = class BookPlugin {
             const titleElt = $('h1, h2');
             if (titleElt.length === 0) {
               const e = new Error(`No h1 or h2 or title attribute`);
-              e.file = url;
+              e.module = modulesById.get(moduleId);
               compilation.warnings.push(e);
             } else {
               title = titleElt.first().text();
@@ -130,17 +132,19 @@ module.exports = class BookPlugin {
           bookRequire = main.require;
           const modules = bookRequire.m;
           const installedModules = bookRequire.c;
-          Object.keys(modules).forEach((k) => {
+          Object.keys(modules).forEach((moduleId) => {
             // TODO why are modules that throw errors ending up in the cache?
-            if (installedModules[k] && !installedModules[k].l) {
-              delete installedModules[k];
+            if (installedModules[moduleId] && !installedModules[moduleId].l) {
+              delete installedModules[moduleId];
             }
-            const mod = bookRequire(k);
-            if (mod && mod.html && mod.url && !mod.isTemplate) {
-              addAsset(mod);
-            }
-            if (mod.renderPages) {
-              mod.renderPages.forEach((page) => addAsset(page));
+            const mod = bookRequire(moduleId);
+            if (mod) {
+              if (mod.html && mod.url && !mod.isTemplate && mod.emit !== false) {
+                addAsset(moduleId, mod);
+              }
+              if (mod.renderPages) {
+                mod.renderPages.forEach((page) => addAsset(moduleId, page));
+              }
             }
           });
           delete compilation.assets[files[0]];

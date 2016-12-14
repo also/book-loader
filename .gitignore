@@ -1,2 +1,5 @@
 node_modules
 /*.js
+!.eslintrc.js
+coverage
+/__tests__
