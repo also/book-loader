@@ -1,3 +1,50 @@
+exports[`test ignores comments 1`] = `
+Object {
+  "attrs": Object {},
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [],
+          "list": false,
+          "title": Array [
+            Object {
+              "attrs": Object {
+                "href": "one.md",
+              },
+              "html": "One",
+              "list": false,
+              "type": "a",
+            },
+          ],
+          "type": "entry",
+        },
+        Object {
+          "children": Array [],
+          "list": false,
+          "title": Array [
+            Object {
+              "attrs": Object {
+                "href": "two.md",
+              },
+              "html": "Two",
+              "list": false,
+              "type": "a",
+            },
+          ],
+          "type": "entry",
+        },
+      ],
+      "list": true,
+      "type": "list",
+    },
+  ],
+  "list": true,
+  "simple": false,
+  "type": "root",
+}
+`;
+
 exports[`test parses link in tag 1`] = `
 Object {
   "attrs": Object {},

@@ -5,6 +5,10 @@ module.exports = function transformToc(toc) {
   const $ = cheerio.load(toc);
 
   function readToc(elt) {
+    if (elt.type === 'comment') {
+      return [];
+    }
+
     const children = [];
 
     const $elt = $(elt);

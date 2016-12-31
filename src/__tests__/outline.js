@@ -44,3 +44,15 @@ it('parses nested list', () => {
 `
   ))).toMatchSnapshot();
 });
+
+it('ignores comments', () => {
+  const outline = require('../outline');
+  expect(outline(createHtml(
+`
+* [One](one.md)
+* [Two](two.md)
+
+<!-- ignore me -->
+`,
+  {html: true}))).toMatchSnapshot();
+});
