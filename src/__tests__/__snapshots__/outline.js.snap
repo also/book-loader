@@ -1,0 +1,226 @@
+exports[`test parses link in tag 1`] = `
+Object {
+  "attrs": Object {},
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [],
+          "list": false,
+          "title": Array [
+            Object {
+              "attrs": Object {},
+              "children": Array [
+                Object {
+                  "attrs": Object {
+                    "href": "one.md",
+                  },
+                  "html": "One",
+                  "list": false,
+                  "type": "a",
+                },
+              ],
+              "list": false,
+              "simple": false,
+              "type": "em",
+            },
+          ],
+          "type": "entry",
+        },
+        Object {
+          "children": Array [],
+          "list": false,
+          "title": Array [
+            Object {
+              "attrs": Object {
+                "href": "two.md",
+              },
+              "html": "Two",
+              "list": false,
+              "type": "a",
+            },
+          ],
+          "type": "entry",
+        },
+      ],
+      "list": true,
+      "type": "list",
+    },
+  ],
+  "list": true,
+  "simple": false,
+  "type": "root",
+}
+`;
+
+exports[`test parses nested list 1`] = `
+Object {
+  "attrs": Object {},
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [],
+              "list": false,
+              "title": Array [
+                Object {
+                  "attrs": Object {
+                    "href": "one-a.md",
+                  },
+                  "html": "One A",
+                  "list": false,
+                  "type": "a",
+                },
+              ],
+              "type": "entry",
+            },
+            Object {
+              "children": Array [],
+              "list": false,
+              "title": Array [
+                Object {
+                  "attrs": Object {
+                    "href": "one-b.md",
+                  },
+                  "html": "One b",
+                  "list": false,
+                  "type": "a",
+                },
+              ],
+              "type": "entry",
+            },
+          ],
+          "list": true,
+          "title": Array [
+            Object {
+              "attrs": Object {
+                "href": "one.md",
+              },
+              "html": "One",
+              "list": false,
+              "type": "a",
+            },
+          ],
+          "type": "entry",
+        },
+        Object {
+          "children": Array [],
+          "list": false,
+          "title": Array [
+            Object {
+              "attrs": Object {
+                "href": "two.md",
+              },
+              "html": "Two",
+              "list": false,
+              "type": "a",
+            },
+          ],
+          "type": "entry",
+        },
+      ],
+      "list": true,
+      "type": "list",
+    },
+  ],
+  "list": true,
+  "simple": false,
+  "type": "root",
+}
+`;
+
+exports[`test parses simple outline 1`] = `
+Object {
+  "attrs": Object {},
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [],
+          "list": false,
+          "title": Array [
+            Object {
+              "attrs": Object {
+                "href": "one.md",
+              },
+              "html": "One",
+              "list": false,
+              "type": "a",
+            },
+          ],
+          "type": "entry",
+        },
+        Object {
+          "children": Array [],
+          "list": false,
+          "title": Array [
+            Object {
+              "attrs": Object {
+                "href": "two.md",
+              },
+              "html": "Two",
+              "list": false,
+              "type": "a",
+            },
+          ],
+          "type": "entry",
+        },
+      ],
+      "list": true,
+      "type": "list",
+    },
+  ],
+  "list": true,
+  "simple": false,
+  "type": "root",
+}
+`;
+
+exports[`test parses tag in link 1`] = `
+Object {
+  "attrs": Object {},
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [],
+          "list": false,
+          "title": Array [
+            Object {
+              "attrs": Object {
+                "href": "one.md",
+              },
+              "html": "<em>One</em>",
+              "list": false,
+              "type": "a",
+            },
+          ],
+          "type": "entry",
+        },
+        Object {
+          "children": Array [],
+          "list": false,
+          "title": Array [
+            Object {
+              "attrs": Object {
+                "href": "two.md",
+              },
+              "html": "Two",
+              "list": false,
+              "type": "a",
+            },
+          ],
+          "type": "entry",
+        },
+      ],
+      "list": true,
+      "type": "list",
+    },
+  ],
+  "list": true,
+  "simple": false,
+  "type": "root",
+}
+`;
