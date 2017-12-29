@@ -4,6 +4,8 @@ const SingleEntryPlugin = require('webpack/lib/SingleEntryPlugin');
 
 const PageUrlDependency = require('./PageUrlDependency');
 
+const BOOK_ASSETS = Symbol('BOOK_ASSETS');
+
 
 module.exports = class BookPlugin {
   constructor(options) {
@@ -26,6 +28,11 @@ module.exports = class BookPlugin {
     });
 
     compiler.plugin('compilation', (compilation, {normalModuleFactory}) => {
+      compilation.plugin('build-module', (mod) => {
+        // remove cached assets when a module is rebuilt
+        delete mod[BOOK_ASSETS];
+      });
+
       normalModuleFactory.plugin('parser', (parser) => {
         parser.plugin('call book.pageUrl', function (expr) {
           var param = this.evaluateExpression(expr.arguments[0]);
@@ -57,8 +64,8 @@ module.exports = class BookPlugin {
 
         const tocModules = new Set();
 
-        function addAsset(moduleId, mod) {
-          let {url, html, attributes={}, template, toc} = mod;
+        function createAsset(moduleId, mod) {
+          let {html, attributes={}, template, toc} = mod;
           const publicUrl = mod.toString();
 
           let pages = [];
@@ -124,7 +131,7 @@ module.exports = class BookPlugin {
             html = template.html(Object.assign({}, modPage, {title, html: () => html}));
           }
 
-          compilation.assets[url] = {
+          return {
             source: () => html,
             size: () => html.length,
             $,
@@ -152,11 +159,27 @@ module.exports = class BookPlugin {
             }
             const mod = bookRequire(moduleId);
             if (mod) {
+              const pages = [];
               if (mod.html && mod.url && !mod.isTemplate && mod.emit !== false) {
-                addAsset(moduleId, mod);
+                pages.push(mod);
               }
               if (mod.renderPages) {
-                mod.renderPages.forEach((page) => addAsset(moduleId, page));
+                pages.push(...mod.renderPages);
+              }
+              if (pages.length > 0) {
+                const webpackMod = modulesById.get(moduleId);
+                let assets;
+                if (this.options.cachePages) {
+                  assets = webpackMod[BOOK_ASSETS];
+                }
+                if (!assets) {
+                  assets = {};
+                  pages.forEach((page) => assets[page.url] = createAsset(moduleId, page));
+                  if (this.options.cachePages) {
+                    webpackMod[BOOK_ASSETS] = assets;
+                  }
+                }
+                Object.assign(compilation.assets, assets);
               }
             }
           });
