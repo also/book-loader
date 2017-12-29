@@ -55,6 +55,8 @@ module.exports = class BookPlugin {
 
         let bookRequire;
 
+        const tocModules = new Set();
+
         function addAsset(moduleId, mod) {
           let {url, html, attributes={}, template, toc} = mod;
           const publicUrl = mod.toString();
@@ -63,6 +65,7 @@ module.exports = class BookPlugin {
 
           if (toc != null) {
             const tocModule = bookRequire(toc);
+            tocModules.add(tocModule);
             if (tocModule.pages) {
               pages = tocModule.pages;
             } else {
@@ -82,10 +85,10 @@ module.exports = class BookPlugin {
           }
 
           // attributes is optional to return, but required for templates
-          mod = Object.assign({}, mod, {previous, next, attributes, options});
+          const modPage = Object.assign({}, mod, {previous, next, attributes, options});
 
           try {
-            html = html(mod);
+            html = html(modPage);
           } catch (e) {
             e.module = modulesById.get(moduleId);
             e.details = e.stack;
@@ -97,18 +100,22 @@ module.exports = class BookPlugin {
 
           let {title} = attributes;
           if (!title) {
-            const titleElt = $('h1, h2');
-            if (titleElt.length === 0) {
-              const e = new Error(`No h1 or h2 or title attribute`);
-              e.module = modulesById.get(moduleId);
-              compilation.warnings.push(e);
+            if (tocModules.has(mod)) {
+              title = 'Table of Contents';
             } else {
-              title = titleElt.first().text();
+              const titleElt = $('h1, h2');
+              if (titleElt.length === 0) {
+                const e = new Error(`No h1 or h2 or title attribute`);
+                e.module = modulesById.get(moduleId);
+                compilation.warnings.push(e);
+              } else {
+                title = titleElt.first().text();
+              }
             }
           }
 
           if (template) {
-            html = template.html(Object.assign({}, mod, {title, html: () => html}));
+            html = template.html(Object.assign({}, modPage, {title, html: () => html}));
           }
 
           compilation.assets[url] = {
