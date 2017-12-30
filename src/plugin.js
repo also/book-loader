@@ -120,7 +120,7 @@ module.exports = class BookPlugin {
             }
           }
 
-          const basename = page.filename.split('/').pop();
+          const basename = webpackModule.resource.split('/').pop();
           const dateMatch = basename.match(/(^\d{4}-\d{2}-\d{2})-/);
 
           if (dateMatch) {

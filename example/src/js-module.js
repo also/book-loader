@@ -8,4 +8,4 @@ exports.html = () => `
 <p>You can create pages with JavaScript.</p>
 `;
 
-exports.template = require('./template.md');
+exports.template = require.resolve('./template.md');
