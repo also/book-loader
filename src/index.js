@@ -54,7 +54,7 @@ exports.attributes = ${JSON.stringify(attributes, null, 2)};
 
 exports.html = (context) => ${content};
 
-exports.template = ${template ? `require(${JSON.stringify(template)})` : 'undefined'};
+exports.template = ${template ? `require.resolve(${JSON.stringify(template)})` : 'undefined'};
 
 exports.toc = ${toc ? `require.resolve(${JSON.stringify(toc)})` : 'undefined'};
 
