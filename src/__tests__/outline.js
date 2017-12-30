@@ -1,12 +1,12 @@
 const cheerio = require('cheerio');
+const markdownIt = require('markdown-it');
+const outline = require('../outline');
 
 function createHtml(str, options={}) {
-  const markdownIt = require('markdown-it');
   return cheerio.load(markdownIt(options).render(str));
 }
 
 it('parses simple outline', () => {
-  const outline = require('../outline');
   expect(outline(createHtml(
 `
 * [One](one.md)
@@ -16,7 +16,6 @@ it('parses simple outline', () => {
 });
 
 it('parses tag in link', () => {
-  const outline = require('../outline');
   expect(outline(createHtml(
 `
 * [*One*](one.md)
@@ -26,7 +25,6 @@ it('parses tag in link', () => {
 });
 
 it('parses link in tag', () => {
-  const outline = require('../outline');
   expect(outline(createHtml(
 `
 * *[One](one.md)*
@@ -36,7 +34,6 @@ it('parses link in tag', () => {
 });
 
 it('parses nested list', () => {
-  const outline = require('../outline');
   expect(outline(createHtml(
 `
 * [One](one.md)
@@ -48,7 +45,6 @@ it('parses nested list', () => {
 });
 
 it('ignores comments', () => {
-  const outline = require('../outline');
   expect(outline(createHtml(
 `
 * [One](one.md)
