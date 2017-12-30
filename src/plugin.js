@@ -2,6 +2,7 @@ const Module = require('module');
 const cheerio = require('cheerio');
 const SingleEntryPlugin = require('webpack/lib/SingleEntryPlugin');
 
+const transformToc = require('./outline');
 const PageUrlDependency = require('./PageUrlDependency');
 
 const BOOK_ASSETS = Symbol('BOOK_ASSETS');
@@ -79,6 +80,10 @@ module.exports = class BookPlugin {
               a = $(a);
               return {url: a.attr('href'), title: a.text()};
             });
+
+            if (this.options.generateOutline) {
+              page.outline = transformToc($);
+            }
 
             toc = {
               html,

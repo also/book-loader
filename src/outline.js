@@ -1,9 +1,4 @@
-const cheerio = require('cheerio');
-
-
-module.exports = function transformToc(toc) {
-  const $ = cheerio.load(toc);
-
+module.exports = function transformToc($) {
   function readToc(elt) {
     if (elt.type === 'comment') {
       return [];
