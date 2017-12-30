@@ -1,6 +1,8 @@
+const cheerio = require('cheerio');
+
 function createHtml(str, options={}) {
   const markdownIt = require('markdown-it');
-  return markdownIt(options).render(str);
+  return cheerio.load(markdownIt(options).render(str));
 }
 
 it('parses simple outline', () => {
