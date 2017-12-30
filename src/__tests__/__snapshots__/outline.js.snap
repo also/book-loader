@@ -1,4 +1,6 @@
-exports[`test ignores comments 1`] = `
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ignores comments 1`] = `
 Object {
   "attrs": Object {},
   "children": Array [
@@ -45,7 +47,7 @@ Object {
 }
 `;
 
-exports[`test parses link in tag 1`] = `
+exports[`parses link in tag 1`] = `
 Object {
   "attrs": Object {},
   "children": Array [
@@ -100,7 +102,7 @@ Object {
 }
 `;
 
-exports[`test parses nested list 1`] = `
+exports[`parses nested list 1`] = `
 Object {
   "attrs": Object {},
   "children": Array [
@@ -178,7 +180,7 @@ Object {
 }
 `;
 
-exports[`test parses simple outline 1`] = `
+exports[`parses simple outline 1`] = `
 Object {
   "attrs": Object {},
   "children": Array [
@@ -225,7 +227,7 @@ Object {
 }
 `;
 
-exports[`test parses tag in link 1`] = `
+exports[`parses tag in link 1`] = `
 Object {
   "attrs": Object {},
   "children": Array [
