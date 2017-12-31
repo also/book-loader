@@ -17,6 +17,8 @@ module.exports = function transformToc($) {
 
     function result(opts) {
       const base = {type: opts.type || elt.tagName, list: listChildren};
+      // elt is non-enumerable so the result is easy to stringify
+      Object.defineProperty(base, 'elt', {enumerable: false, value: elt});
       if (!simpleChildren) {
         base.children = children;
       } else {
@@ -51,19 +53,30 @@ module.exports = function transformToc($) {
         if (firstListIndex === -1) {
           firstListIndex = children.length;
         }
+
         const title = children.slice(0, firstListIndex);
+        const titleElts = title.map(({elt}) => elt);
+
+        const titleText = $.text(titleElts).replace(/\s+/g, ' ').trim();
+        // TODO this is a hack to get cheerio to find an a tag at the root or
+        // a child of any of the titleElts. It normally only searches children.
+        const url = $('a', [{children: titleElts}]).attr('href');
+
         const listChildren = children.slice(firstListIndex);
         const entries = [];
         listChildren.forEach((child) => {
           if (child.type === 'list') {
             entries.push(...child.children);
           } else {
-            throw new Error(`Don't know what to do with children ${$elt.html()}`);
+            throw new Error(`Found unexpected "${child.elt.tagName}" tag after list in "${titleText}": ${$.html(child.elt)}`);
           }
         });
+
         return result({
           type: 'entry',
           title,
+          titleText,
+          url,
           children: entries
         });
       }
