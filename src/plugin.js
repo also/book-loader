@@ -91,7 +91,7 @@ module.exports = class BookPlugin {
                 return {url: a.attr('href'), title: a.text()};
               });
 
-              if (this.options.generateOutline) {
+              if (options.generateOutline) {
                 page.outline = transformToc($);
               }
 
@@ -104,7 +104,7 @@ module.exports = class BookPlugin {
               };
               tocs.set(tocModuleId, toc);
 
-              if (this.options.cachePages) {
+              if (options.cachePages) {
                 webpackModule[TOC] = toc;
               }
             } catch (e) {
@@ -163,23 +163,30 @@ module.exports = class BookPlugin {
 
           const $ = cheerio.load(html);
 
-          let {title} = attributes;
+          let {title, titleHtml=title} = attributes;
           if (!title) {
             if (tocs.has(moduleId)) {
               title = 'Table of Contents';
             } else {
-              const titleElt = $('h1, h2');
-              if (titleElt.length === 0) {
+              const titleElts = $('h1, h2');
+              if (titleElts.length === 0) {
                 const e = new Error(`No h1 or h2 or title attribute`);
                 e.module = webpackModule;
                 compilation.warnings.push(e);
               } else {
-                title = titleElt.first().text();
+                const titleElt = titleElts.first();
+                title = titleElt.text();
+                titleHtml = titleElt.html();
+                if (options.removeTitleElt) {
+                  titleElt.remove();
+                  html = $.html($.root());
+                }
               }
             }
           }
 
           renderingPage.title = title;
+          renderingPage.titleHtml = titleHtml;
 
           let completeHtml = html;
           if (templateModuleId) {
@@ -240,7 +247,7 @@ module.exports = class BookPlugin {
                 if (!assets) {
                   assets = {};
                   pages.forEach((page) => assets[page.url] = createAsset(moduleId, page, webpackMod));
-                  if (this.options.cachePages) {
+                  if (options.cachePages) {
                     webpackMod[BOOK_ASSETS] = assets;
                   }
                 }
