@@ -93,6 +93,7 @@ module.exports = class BookPlugin {
 
               if (options.generateOutline) {
                 page.outline = transformToc($);
+                page.breadcrumbs = transformToc.generateBreadcrumbs(page.outline);
               }
 
               toc = {
@@ -107,6 +108,8 @@ module.exports = class BookPlugin {
               if (options.cachePages) {
                 webpackModule[TOC] = toc;
               }
+
+              compilation.applyPlugins1('book-toc-rendered', toc);
             } catch (e) {
               tocs.set(tocModuleId, null);
               e.module = webpackModule;

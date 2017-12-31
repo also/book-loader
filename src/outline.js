@@ -94,3 +94,24 @@ module.exports = function transformToc($) {
   const outline = readToc($.root().get(0))[0];
   return outline;
 };
+
+module.exports.generateBreadcrumbs = function generateBreadcrumbs(outline) {
+  const result = new Map();
+  const recurse = (node, path) => {
+    if (node.type === 'entry') {
+      path = [...path, {title: node.titleText, url: node.url}];
+      if (node.url != null) {
+        const entries = result.get(node.url) || [];
+        entries.push(path);
+        result.set(node.url, entries);
+      }
+    }
+    if (node.children) {
+      node.children.forEach(child => recurse(child, path));
+    }
+  };
+
+  recurse(outline, []);
+
+  return result;
+}
