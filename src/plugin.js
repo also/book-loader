@@ -71,31 +71,47 @@ module.exports = class BookPlugin {
         const getToc = (tocModuleId) => {
           tocModuleId = '' + tocModuleId;
           const webpackModule = getWebpackModule(tocModuleId);
-          let toc = tocs.get(tocModuleId) || webpackModule[TOC];
-          if (!toc) {
-            const page = bookRequire(tocModuleId);
-            const html = page.html();
-            const $ = cheerio.load(html);
-            const pages = $('a').toArray().map((a) => {
-              a = $(a);
-              return {url: a.attr('href'), title: a.text()};
-            });
-
-            if (this.options.generateOutline) {
-              page.outline = transformToc($);
+          let toc;
+          if (tocs.has(tocModuleId)) {
+            toc = tocs.get(tocModuleId);
+            if (!toc) {
+              // the toc threw an error
+              return null;
             }
+          } else {
+            toc = webpackModule[TOC];
+          }
+          if (!toc) {
+            try {
+              const page = bookRequire(tocModuleId);
+              const html = page.html();
+              const $ = cheerio.load(html);
+              const pages = $('a').toArray().map((a) => {
+                a = $(a);
+                return {url: a.attr('href'), title: a.text()};
+              });
 
-            toc = {
-              html,
-              $,
-              pages,
-              page,
-              webpackModule
-            };
-            tocs.set(tocModuleId, toc);
+              if (this.options.generateOutline) {
+                page.outline = transformToc($);
+              }
 
-            if (this.options.cachePages) {
-              webpackModule[TOC] = toc;
+              toc = {
+                html,
+                $,
+                pages,
+                page,
+                webpackModule
+              };
+              tocs.set(tocModuleId, toc);
+
+              if (this.options.cachePages) {
+                webpackModule[TOC] = toc;
+              }
+            } catch (e) {
+              tocs.set(tocModuleId, null);
+              e.module = webpackModule;
+              compilation.errors.push(e);
+              // throw new Error('Error building TOC');
             }
           }
 
@@ -114,14 +130,16 @@ module.exports = class BookPlugin {
 
           if (tocModuleId != null) {
             const toc = getToc(tocModuleId);
-            renderingPage.toc = toc.page;
-            fileDependencies.add(toc.webpackModule.resource);
+            if (toc) {
+              renderingPage.toc = toc.page;
+              fileDependencies.add(toc.webpackModule.resource);
 
-            const pageIndex = toc.pages.findIndex(({url: tocUrl}) => publicUrl === tocUrl);
+              const pageIndex = toc.pages.findIndex(({url: tocUrl}) => publicUrl === tocUrl);
 
-            if (pageIndex !== -1) {
-              renderingPage.previous = toc.pages[pageIndex - 1];
-              renderingPage.next = toc.pages[pageIndex + 1];
+              if (pageIndex !== -1) {
+                renderingPage.previous = toc.pages[pageIndex - 1];
+                renderingPage.next = toc.pages[pageIndex + 1];
+              }
             }
           }
 
@@ -153,7 +171,7 @@ module.exports = class BookPlugin {
               const titleElt = $('h1, h2');
               if (titleElt.length === 0) {
                 const e = new Error(`No h1 or h2 or title attribute`);
-                e.module = getWebpackModule(moduleId);
+                e.module = webpackModule;
                 compilation.warnings.push(e);
               } else {
                 title = titleElt.first().text();
@@ -163,14 +181,18 @@ module.exports = class BookPlugin {
 
           renderingPage.title = title;
 
-          let completeHtml;
+          let completeHtml = html;
           if (templateModuleId) {
-            const templatePage = bookRequire(templateModuleId);
-            completeHtml = templatePage.html(Object.assign({}, renderingPage, {html: () => html}));
+            const templateWebpackModule = getWebpackModule(templateModuleId);
+            try {
+              const templatePage = bookRequire(templateModuleId);
+              completeHtml = templatePage.html(Object.assign({}, renderingPage, {html: () => html}));
+            } catch (e) {
+              e.module = templateWebpackModule;
+              compilation.errors.push(e);
+            }
 
-            fileDependencies.add(getWebpackModule(templateModuleId).resource);
-          } else {
-            completeHtml = html;
+            fileDependencies.add(templateWebpackModule.resource);
           }
 
           webpackModule.fileDependencies = Array.from(fileDependencies);
