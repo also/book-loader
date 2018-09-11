@@ -57,7 +57,5 @@ exports.html = (context) => ${content};
 exports.template = ${template ? `require.resolve(${JSON.stringify(template)})` : 'undefined'};
 
 exports.toc = ${toc ? `require.resolve(${JSON.stringify(toc)})` : 'undefined'};
-
-exports.require = __webpack_require__;
 `;
 };

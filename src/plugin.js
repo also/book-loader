@@ -1,6 +1,7 @@
 const Module = require('module');
+const webpack = require('webpack');
 const cheerio = require('cheerio');
-const SingleEntryPlugin = require('webpack/lib/SingleEntryPlugin');
+const MultiEntryPlugin = require('webpack/lib/MultiEntryPlugin');
 
 const transformToc = require('./outline');
 const PageUrlDependency = require('./PageUrlDependency');
@@ -15,8 +16,9 @@ module.exports = class BookPlugin {
 
   apply(compiler) {
     const {options} = this;
+    compiler.apply(new webpack.DefinePlugin({BOOK_LOADER_DIR: JSON.stringify(__dirname)}));
     options.entry.forEach((entry) => {
-      compiler.apply(new SingleEntryPlugin(compiler.options.context, entry, `book-loader-${entry}`));
+      compiler.apply(new MultiEntryPlugin(compiler.options.context, [entry, require.resolve('./entry')], `book-loader-${entry}`));
     });
 
     compiler.plugin('compilation', (compilation, {normalModuleFactory}) => {
@@ -51,7 +53,7 @@ module.exports = class BookPlugin {
     compiler.plugin('emit', (compilation, callback) => {
       compilation.chunks = compilation.chunks.filter((chunk) => {
         // skip chunks without a book entry point
-        if (!(chunk.entryModule.loaders || []).find((s) => s.loader.indexOf('book-loader/index.js') >= 0)) {
+        if (!chunk.entryModule.dependencies[1].module.resource.includes('book-loader/entry')) {
           return true;
         }
 
@@ -131,22 +133,7 @@ module.exports = class BookPlugin {
           // the page with some extra attributes for the template
           const renderingPage = Object.assign({}, page);
 
-          if (tocModuleId != null) {
-            const toc = getToc(tocModuleId);
-            if (toc) {
-              renderingPage.toc = toc.page;
-              fileDependencies.add(toc.webpackModule.resource);
-
-              const pageIndex = toc.pages.findIndex(({url: tocUrl}) => publicUrl === tocUrl);
-
-              if (pageIndex !== -1) {
-                renderingPage.previous = toc.pages[pageIndex - 1];
-                renderingPage.next = toc.pages[pageIndex + 1];
-              }
-            }
-          }
-
-          const basename = webpackModule.resource.split('/').pop();
+          const basename = publicUrl.split('/').pop();
           const dateMatch = basename.match(/(^\d{4}-\d{2}-\d{2})-/);
 
           if (dateMatch) {
@@ -165,6 +152,21 @@ module.exports = class BookPlugin {
           }
 
           const $ = cheerio.load(html);
+
+          if (tocModuleId != null) {
+            const toc = getToc(tocModuleId);
+            if (toc) {
+              renderingPage.toc = toc.page;
+              fileDependencies.add(toc.webpackModule.resource);
+
+              const pageIndex = toc.pages.findIndex(({url: tocUrl}) => publicUrl === tocUrl);
+
+              if (pageIndex !== -1) {
+                renderingPage.previous = toc.pages[pageIndex - 1];
+                renderingPage.next = toc.pages[pageIndex + 1];
+              }
+            }
+          }
 
           let {title, titleHtml=title} = attributes;
           if (!title) {
@@ -220,7 +222,7 @@ module.exports = class BookPlugin {
         try {
           const mainSource = compilation.assets[files[0]].source();
 
-          const filename = chunk.entryModule.resource;
+          const filename = chunk.entryModule.dependencies[0].module.resource;
           const m = new Module(filename, chunk.entryModule);
           m.paths = Module._nodeModulePaths(chunk.entryModule.context);
           m.filename = filename;
