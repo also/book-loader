@@ -114,4 +114,4 @@ module.exports.generateBreadcrumbs = function generateBreadcrumbs(outline) {
   recurse(outline, []);
 
   return result;
-}
+};
