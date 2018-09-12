@@ -125,13 +125,16 @@ module.exports = class BookPlugin {
 
         let bookRequire;
 
-        const createAsset = (moduleId, page, webpackModule) => {
+        const render = (page) => {
+          const {renderer, webpackModule} = page;
+          const moduleId = webpackModule.id.toString();
+
           const fileDependencies = new Set(webpackModule.fileDependencies);
-          let {html, attributes={}, template: templateModuleId, toc: tocModuleId} = page;
-          const publicUrl = page.toString();
+          let {html, attributes={}, template: templateModuleId, toc: tocModuleId} = renderer;
+          const publicUrl = renderer.toString();
 
           // the page with some extra attributes for the template
-          const renderingPage = Object.assign({}, page);
+          const renderingPage = Object.assign({}, renderer);
 
           const basename = publicUrl.split('/').pop();
           const dateMatch = basename.match(/(^\d{4}-\d{2}-\d{2})-/);
@@ -219,6 +222,17 @@ module.exports = class BookPlugin {
           return asset;
         };
 
+        function pagesForModule(mod, webpackModule) {
+          const pages = [];
+          if (mod.html && mod.url && !mod.isTemplate && mod.emit !== false) {
+            pages.push({renderer: mod, webpackModule});
+          }
+          if (mod.renderPages) {
+            pages.push(...mod.renderPages.map(renderer => ({renderer, webpackModule})));
+          }
+          return pages;
+        }
+
         try {
           const mainSource = compilation.assets[files[0]].source();
 
@@ -239,25 +253,16 @@ module.exports = class BookPlugin {
             }
             const mod = bookRequire(moduleId);
             if (mod) {
-              const pages = [];
-              if (mod.html && mod.url && !mod.isTemplate && mod.emit !== false) {
-                pages.push(mod);
-              }
-              if (mod.renderPages) {
-                pages.push(...mod.renderPages);
-              }
-              if (pages.length > 0) {
-                const webpackMod = getWebpackModule(moduleId);
-                let assets = webpackMod[BOOK_ASSETS];
-                if (!assets) {
-                  assets = {};
-                  pages.forEach((page) => assets[page.url] = createAsset(moduleId, page, webpackMod));
-                  if (options.cachePages) {
-                    webpackMod[BOOK_ASSETS] = assets;
-                  }
+              const webpackMod = getWebpackModule(moduleId);
+              let assets = webpackMod[BOOK_ASSETS];
+              if (!assets) {
+                assets = {};
+                pagesForModule(mod, webpackMod).forEach((page) => assets[page.renderer.url] = render(page));
+                if (options.cachePages) {
+                  webpackMod[BOOK_ASSETS] = assets;
                 }
-                Object.assign(compilation.assets, assets);
               }
+              Object.assign(compilation.assets, assets);
             }
           });
           delete compilation.assets[files[0]];
