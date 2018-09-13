@@ -9,7 +9,53 @@ const PageUrlDependency = require('./PageUrlDependency');
 const BOOK_PAGES = Symbol('BOOK_PAGES');
 const TOC = Symbol('TOC');
 
+type WebpackModule = {
+  id: number | string
+  dependencies: {module?: WebpackModule},
+  resource: string,
+  context: string,
+  fileDependencies: string[]
+};
+
+type WebpackChunk = {
+  modules: WebpackModule[],
+  entryModule: WebpackModule,
+  files: any
+}
+
+type WebpackAsset = {
+  source: () => string
+};
+
+
+type WebpackCompilation = {
+  chunks: WebpackChunk[],
+  errors: any[],
+  warnings: any[],
+  assets: {[filename: string]: WebpackAsset}
+  files: any[],
+  applyPlugins1: any
+}
+
+type WebpackRuntimeModule = {
+  // l=loaded
+  l: boolean;
+}
+type CompiledModule = {}
+
+type WebpackRequire = ((string) => CompiledModule) & {
+  m: {[moduleId: string]: WebpackRuntimeModule}
+  c: {[moduleId: string]: WebpackRuntimeModule}
+}
+
+type Page = {
+  renderer: any,
+  webpackModule: WebpackModule
+}
+
 module.exports = class BookPlugin {
+  options: {entry: string[], generateOutline?: boolean, cachePages?: boolean, removeTitleElt?: boolean};
+
   constructor(options) {
     this.options = options;
   }
@@ -50,7 +96,7 @@ module.exports = class BookPlugin {
       });
     });
 
-    compiler.plugin('emit', (compilation, callback) => {
+    compiler.plugin('emit', (compilation: WebpackCompilation, callback) => {
       compilation.chunks = compilation.chunks.filter((chunk) => {
         // skip chunks without a book entry point
         if (!chunk.entryModule.dependencies[1].module.resource.includes('book-loader/entry')) {
@@ -62,10 +108,14 @@ module.exports = class BookPlugin {
           return true;
         }
 
-        const modulesById = new Map(chunk.modules.map((mod) => ['' + mod.id, mod]));
+        const modulesById: Map<string, WebpackModule> = new Map(chunk.modules.map((mod) => ['' + mod.id, mod] as [string, WebpackModule]));
 
-        function getWebpackModule(id) {
-          return modulesById.get('' + id);
+        function getWebpackModule(id: string): WebpackModule {
+          const result = modulesById.get('' + id);
+          if (!result) {
+            throw new Error('missing webpack module');
+          }
+          return result;
         }
 
         const tocs = new Map();
@@ -123,9 +173,9 @@ module.exports = class BookPlugin {
           return toc;
         };
 
-        let bookRequire;
+        let bookRequire: WebpackRequire;
 
-        const render = (page) => {
+        const render = (page: Page) => {
           const {renderer, webpackModule} = page;
           const moduleId = webpackModule.id.toString();
 
@@ -224,8 +274,8 @@ module.exports = class BookPlugin {
           page.asset = asset;
         };
 
-        function pagesForModule(mod, webpackModule) {
-          const pages = [];
+        function pagesForModule(mod: CompiledModule, webpackModule: WebpackModule): Page[] {
+          const pages: Page[] = [];
           if (mod.html && mod.url && !mod.isTemplate && mod.emit !== false) {
             pages.push({renderer: mod, webpackModule});
           }
@@ -253,6 +303,7 @@ module.exports = class BookPlugin {
             if (installedModules[moduleId] && !installedModules[moduleId].l) {
               delete installedModules[moduleId];
             }
+
             const mod = bookRequire(moduleId);
             if (mod) {
               const webpackMod = getWebpackModule(moduleId);

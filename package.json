@@ -15,7 +15,8 @@
     "babel-eslint": "^7.1.1",
     "babel-preset-env": "^1.1.8",
     "eslint": "^3.13.1",
-    "jest": "^22.0.4"
+    "jest": "^22.0.4",
+    "typescript": "^3.0.3"
   },
   "scripts": {
     "build": "babel src -d .",
