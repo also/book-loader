@@ -6,7 +6,7 @@ const MultiEntryPlugin = require('webpack/lib/MultiEntryPlugin');
 const transformToc = require('./outline');
 const PageUrlDependency = require('./PageUrlDependency');
 
-const BOOK_ASSETS = Symbol('BOOK_ASSETS');
+const BOOK_PAGES = Symbol('BOOK_PAGES');
 const TOC = Symbol('TOC');
 
 module.exports = class BookPlugin {
@@ -33,7 +33,7 @@ module.exports = class BookPlugin {
     compiler.plugin('compilation', (compilation, {normalModuleFactory}) => {
       compilation.plugin('build-module', (mod) => {
         // remove cached assets when a module is rebuilt
-        delete mod[BOOK_ASSETS];
+        delete mod[BOOK_PAGES];
         delete mod[TOC];
       });
 
@@ -155,21 +155,7 @@ module.exports = class BookPlugin {
           }
 
           const $ = cheerio.load(html);
-
-          if (tocModuleId != null) {
-            const toc = getToc(tocModuleId);
-            if (toc) {
-              renderingPage.toc = toc.page;
-              fileDependencies.add(toc.webpackModule.resource);
-
-              const pageIndex = toc.pages.findIndex(({url: tocUrl}) => publicUrl === tocUrl);
-
-              if (pageIndex !== -1) {
-                renderingPage.previous = toc.pages[pageIndex - 1];
-                renderingPage.next = toc.pages[pageIndex + 1];
-              }
-            }
-          }
+          page.$ = $;
 
           let {title, titleHtml=title} = attributes;
           if (!title) {
@@ -193,8 +179,25 @@ module.exports = class BookPlugin {
             }
           }
 
+          page.title = title;
+
           renderingPage.title = title;
           renderingPage.titleHtml = titleHtml;
+
+          if (tocModuleId != null) {
+            const toc = getToc(tocModuleId);
+            if (toc) {
+              renderingPage.toc = toc.page;
+              fileDependencies.add(toc.webpackModule.resource);
+
+              const pageIndex = toc.pages.findIndex(({url: tocUrl}) => publicUrl === tocUrl);
+
+              if (pageIndex !== -1) {
+                renderingPage.previous = toc.pages[pageIndex - 1];
+                renderingPage.next = toc.pages[pageIndex + 1];
+              }
+            }
+          }
 
           let completeHtml = html;
           if (templateModuleId) {
@@ -215,11 +218,10 @@ module.exports = class BookPlugin {
           const asset = {
             source: () => completeHtml,
             size: () => completeHtml.length,
-            $,
-            title
+            page
           };
 
-          return asset;
+          page.asset = asset;
         };
 
         function pagesForModule(mod, webpackModule) {
@@ -254,15 +256,16 @@ module.exports = class BookPlugin {
             const mod = bookRequire(moduleId);
             if (mod) {
               const webpackMod = getWebpackModule(moduleId);
-              let assets = webpackMod[BOOK_ASSETS];
-              if (!assets) {
-                assets = {};
-                pagesForModule(mod, webpackMod).forEach((page) => assets[page.renderer.url] = render(page));
-                if (options.cachePages) {
-                  webpackMod[BOOK_ASSETS] = assets;
-                }
+              let pages = webpackMod[BOOK_PAGES];
+              if (!pages) {
+                pages = pagesForModule(mod, webpackMod).forEach((page) => {
+                  render(page);
+                });
               }
-              Object.assign(compilation.assets, assets);
+              if (options.cachePages) {
+                webpackMod[BOOK_PAGES] = pages;
+              }
+              pages.forEach(page => compilation.assets[page.renderer.url] = page.asset);
             }
           });
           delete compilation.assets[files[0]];

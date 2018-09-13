@@ -5,3 +5,4 @@
 * [Module Example](module-example.md)
 * [Custom URL](custom-url.md)
 * [JavaScript Module](js-module.js)
+* [Dated](2018-09-10-date-example.md)
