@@ -10,6 +10,7 @@ const TOC = Symbol('TOC');
 
 type WebpackModule = {
   id: number | string
+  loaders: {loader: string}[]
   dependencies: {module?: WebpackModule},
   resource: string,
   context: string,
@@ -94,7 +95,7 @@ module.exports = class BookPlugin {
       });
     });
 
-    compiler.plugin('emit', (compilation, callback) => {
+    compiler.plugin('emit', (compilation: WebpackCompilation, callback) => {
       compilation.chunks = compilation.chunks.filter((chunk) => {
         // skip chunks without a book entry point
         if (!(chunk.entryModule.loaders || []).find((s) => s.loader.indexOf('book-loader/lib/index.js') >= 0)) {
@@ -106,7 +107,7 @@ module.exports = class BookPlugin {
           return true;
         }
 
-        const modulesById: Map<string, WebpackModule> = new Map(chunk.modules.map((mod) => ['' + mod.id, mod]));
+        const modulesById: Map<string, WebpackModule> = new Map(chunk.modules.map((mod) => ['' + mod.id, mod] as [string, WebpackModule]));
 
         function getWebpackModule(id: string): WebpackModule {
           const result = modulesById.get('' + id);
@@ -268,7 +269,7 @@ module.exports = class BookPlugin {
         };
 
         try {
-          const mainSource = compilation.assets[files[0]].source();
+          const mainSource: string = compilation.assets[files[0]].source();
 
           const filename = chunk.entryModule.resource;
           const m = new Module(filename, chunk.entryModule);
