@@ -1,17 +1,28 @@
-const loaderUtils = require('loader-utils');
-const Token = require('markdown-it/lib/token');
+import loaderUtils from 'loader-utils';
+import Token from 'markdown-it/lib/token';
 
-
-const {
+import {
   create,
   preprocess,
   replace,
   postprocess,
-  generator
-} = require('./template');
+  generator,
+  Env
+} from './template';
+
+type Attr = [string, string];
+
+type Token = {
+  type: string
+  attrs: Attr[]
+  content: string
+  children: Token[]
+  // an option we added
+  templated?: boolean
+};
 
 
-function urlJs(url) {
+function urlJs(url: string): string | null {
   if (!loaderUtils.isUrlRequest(url)) {
     return null;
   }
@@ -24,7 +35,7 @@ function urlJs(url) {
   return result;
 }
 
-function splitJavaScriptTokens(token) {
+function splitJavaScriptTokens(token: Token): Token[] {
   return Array.from(generator(token.content), ({raw, js}) => {
     let replacement;
     if (js) {
@@ -38,7 +49,7 @@ function splitJavaScriptTokens(token) {
   });
 }
 
-function replaceJavaScriptAttrs(attrs, env) {
+function replaceJavaScriptAttrs(attrs: Attr[], env: Env): Attr[] {
   return attrs.map(([name, value]) => {
     if (name === 'src' || name === 'href') {
       const replacement = urlJs(value);
@@ -47,18 +58,18 @@ function replaceJavaScriptAttrs(attrs, env) {
       }
     }
 
-    return [name, value];
+    return [name, value] as Attr;
   });
 }
 
-function expandJavaScriptTokens(tokens, env) {
-  return [].concat(...tokens.map((token) => {
+function expandJavaScriptTokens(tokens: Token[], env: Env): Token[] {
+  return ([] as Token[]).concat(...tokens.map((token) => {
     if (token.attrs) {
       token.attrs = replaceJavaScriptAttrs(token.attrs, env);
     }
     const {type} = token;
     if (type === 'html_block' || type === 'text' || type === 'html_inline') {
-      return splitJavaScriptTokens(token, env);
+      return splitJavaScriptTokens(token);
     } else if (type === 'inline') {
       token.children = expandJavaScriptTokens(token.children, env);
       return [token];
@@ -76,8 +87,8 @@ function expandJavaScriptTokens(tokens, env) {
 }
 
 // => <p><javascript/></p> -> <javascript/>
-function promoteBlockJavaScript(tokens) {
-  const result = [];
+function promoteBlockJavaScript(tokens: Token[]): Token[] {
+  const result: Token[] = [];
   for (let i = 0; i < tokens.length; i++) {
     const open = tokens[i];
     if (i < tokens.length - 2) {
@@ -102,7 +113,7 @@ function templateTokenize(state) {
   state.tokens = promoteBlockJavaScript(expandJavaScriptTokens(state.tokens, state.env));
 }
 
-module.exports = function(md) {
+export default function(md) {
   md.core.ruler.push('js-template', templateTokenize);
 
   md.renderer.rules.javascript = (tokens, idx, options, env) => replace(env, tokens[idx].content);

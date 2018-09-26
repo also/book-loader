@@ -1,18 +1,18 @@
-const path = require('path');
-const loaderUtils = require('loader-utils');
-const fm = require('front-matter');
-const markdownJsTemplate = require('./markdown-js-template');
-const {apply: jsTemplate} = require('./template');
-const helpers = require('./helpers');
-const markdownIt = require('markdown-it');
+import path from 'path';
+import loaderUtils from 'loader-utils';
+import fm from 'front-matter';
+import markdownJsTemplate from './markdown-js-template';
+import {apply as jsTemplate} from './template';
+import helpers from './helpers';
+import markdownIt from 'markdown-it';
 
 
-module.exports = function bookLoader(content) {
+module.exports = function bookLoader(content: string): string {
   this.cacheable(true);
   const query = loaderUtils.parseQuery(this.query);
   const {toc} = query;
 
-  const {attributes, body} = fm(content);
+  const {attributes, body} = fm<{[key: string]: any}>(content);
 
   if (query.markdown === false || attributes.markdown === false) {
     content = jsTemplate(body);

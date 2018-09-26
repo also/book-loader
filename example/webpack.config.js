@@ -1,5 +1,5 @@
 const path = require('path');
-const BookPlugin = require('book-loader/plugin');
+const BookPlugin = require('book-loader/lib/plugin');
 
 const src = path.join(__dirname, 'src');
 

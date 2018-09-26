@@ -1,12 +1,22 @@
-function create() {
+export type Env = {
+  jsTemplateReplacements: string[]
+};
+
+type EnvThing = {
+  js?: string
+  raw?: string
+  rawJs?: string
+};
+
+export function create(): Env {
   return {jsTemplateReplacements: []};
 }
 
-function createTemplatePattern() {
+export function createTemplatePattern(): RegExp {
   return /<%(=|-)([\s\S]+?)%>/g;
 }
 
-function preprocess(env, content) {
+export function preprocess(env: Env, content) {
   if (!content.replace) {
     return content;
   }
@@ -18,12 +28,12 @@ function preprocess(env, content) {
   });
 }
 
-function replace(env, js) {
+export function replace(env: Env, js: string) {
   env.jsTemplateReplacements.push(js);
   return `~~ replacement ${env.jsTemplateReplacements.length - 1} ~~`;
 }
 
-function postprocess(env, content) {
+export function postprocess(env: Env, content: string) {
   const replacements = env.jsTemplateReplacements;
   return content.split(/~~ replacement (\d+) ~~/g)
     .map((s, i) => {
@@ -32,7 +42,7 @@ function postprocess(env, content) {
     .join(' +\n    ');
 }
 
-function* generator(s) {
+export function* generator(s: string): Iterable<EnvThing> {
   const parts = s.split(createTemplatePattern());
   for (let i = 0; i < parts.length; i += 3) {
     const raw = parts[i];
@@ -50,16 +60,6 @@ function* generator(s) {
   }
 }
 
-function apply(s) {
+export function apply(s: string): string {
   return Array.from(generator(s), ({js, raw}) => js ? `(${js})` : JSON.stringify(raw)).join(' +\n    ');
 }
-
-Object.assign(exports, {
-  createTemplatePattern,
-  preprocess,
-  replace,
-  postprocess,
-  create,
-  generator,
-  apply
-});

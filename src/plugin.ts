@@ -8,7 +8,53 @@ const PageUrlDependency = require('./PageUrlDependency');
 const BOOK_ASSETS = Symbol('BOOK_ASSETS');
 const TOC = Symbol('TOC');
 
+type WebpackModule = {
+  id: number | string
+  dependencies: {module?: WebpackModule},
+  resource: string,
+  context: string,
+  fileDependencies: string[]
+};
+
+type WebpackChunk = {
+  modules: WebpackModule[],
+  entryModule: WebpackModule,
+  files: any
+}
+
+type WebpackAsset = {
+  source: () => string
+};
+
+
+type WebpackCompilation = {
+  chunks: WebpackChunk[],
+  errors: any[],
+  warnings: any[],
+  assets: {[filename: string]: WebpackAsset}
+  files: any[],
+  applyPlugins1: any
+  plugin: any
+}
+
+type WebpackRuntimeModule = {
+  // l=loaded
+  l: boolean;
+}
+type CompiledModule = {}
+
+type WebpackRequire = ((string) => CompiledModule) & {
+  m: {[moduleId: string]: WebpackRuntimeModule}
+  c: {[moduleId: string]: WebpackRuntimeModule}
+}
+
+type Page = any;
+
+type WebpackError = Error & {module?: any};
+
 module.exports = class BookPlugin {
+  options: {entry: string[], generateOutline?: boolean, cachePages?: boolean, removeTitleElt?: boolean};
+
   constructor(options) {
     this.options = options;
   }
@@ -28,8 +74,8 @@ module.exports = class BookPlugin {
       compilation.dependencyTemplates.set(PageUrlDependency, new PageUrlDependency.Template());
     });
 
-    compiler.plugin('compilation', (compilation, {normalModuleFactory}) => {
-      compilation.plugin('build-module', (mod) => {
+    compiler.plugin('compilation', (compilation: WebpackCompilation, {normalModuleFactory}) => {
+      compilation.plugin('build-module', (mod: WebpackModule) => {
         // remove cached assets when a module is rebuilt
         delete mod[BOOK_ASSETS];
         delete mod[TOC];
@@ -51,7 +97,7 @@ module.exports = class BookPlugin {
     compiler.plugin('emit', (compilation, callback) => {
       compilation.chunks = compilation.chunks.filter((chunk) => {
         // skip chunks without a book entry point
-        if (!(chunk.entryModule.loaders || []).find((s) => s.loader.indexOf('book-loader/index.js') >= 0)) {
+        if (!(chunk.entryModule.loaders || []).find((s) => s.loader.indexOf('book-loader/lib/index.js') >= 0)) {
           return true;
         }
 
@@ -60,10 +106,14 @@ module.exports = class BookPlugin {
           return true;
         }
 
-        const modulesById = new Map(chunk.modules.map((mod) => ['' + mod.id, mod]));
+        const modulesById: Map<string, WebpackModule> = new Map(chunk.modules.map((mod) => ['' + mod.id, mod]));
 
-        function getWebpackModule(id) {
-          return modulesById.get('' + id);
+        function getWebpackModule(id: string): WebpackModule {
+          const result = modulesById.get('' + id);
+          if (!result) {
+            throw new Error('missing webpack module');
+          }
+          return result;
         }
 
         const tocs = new Map();
@@ -173,7 +223,7 @@ module.exports = class BookPlugin {
             } else {
               const titleElts = $('h1, h2');
               if (titleElts.length === 0) {
-                const e = new Error(`No h1 or h2 or title attribute`);
+                const e: WebpackError = new Error(`No h1 or h2 or title attribute`);
                 e.module = webpackModule;
                 compilation.warnings.push(e);
               } else {
@@ -237,7 +287,7 @@ module.exports = class BookPlugin {
             }
             const mod = bookRequire(moduleId);
             if (mod) {
-              const pages = [];
+              const pages: Page[] = [];
               if (mod.html && mod.url && !mod.isTemplate && mod.emit !== false) {
                 pages.push(mod);
               }

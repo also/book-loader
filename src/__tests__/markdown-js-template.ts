@@ -1,6 +1,7 @@
-function createMd(options) {
-  const markdownJsTemplate = require('../markdown-js-template');
-  const markdownIt = require('markdown-it');
+import markdownIt from 'markdown-it';
+import markdownJsTemplate from '../markdown-js-template';
+
+function createMd(options?) {
   return markdownIt(options).use(markdownJsTemplate);
 }
 
