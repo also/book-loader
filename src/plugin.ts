@@ -8,6 +8,8 @@ const PageUrlDependency = require('./PageUrlDependency');
 const BOOK_ASSETS = Symbol('BOOK_ASSETS');
 const TOC = Symbol('TOC');
 
+type Options = {entry: string[], generateOutline?: boolean, cachePages?: boolean, removeTitleElt?: boolean};
+
 type WebpackModule = {
   id: number | string
   loaders: {loader: string}[]
@@ -31,7 +33,7 @@ type Toc = {
   html: string
   $: any
   page: Page
-  pages: {url: string, title: string}[]
+  pages: TocPageInfo[]
   webpackModule: WebpackModule
 }
 
@@ -59,12 +61,39 @@ type WebpackRequire = ((string) => CompiledModule) & {
 
 type Page = {
   url: string
+  html: (p: RenderingPage) => string
+  attributes: {[key: string]: any}
+  template: string
+  toc: string
 };
+
+type TocPageInfo = {url: string, title: string};
+
+type RenderingPage = {
+  url: string
+  attributes: {[key: string]: any}
+  toc?: Page
+  previous?: TocPageInfo
+  next?: TocPageInfo
+  options: Options
+}
+
+type RenderingPageForTemplate = {
+  url: string
+  title: string,
+  titleHtml: string
+  html: (p: RenderingPage) => string
+  attributes: {[key: string]: any}
+  toc?: Page
+  previous?: TocPageInfo
+  next?: TocPageInfo
+  options: Options
+}
 
 type WebpackError = Error & {module?: any};
 
 module.exports = class BookPlugin {
-  options: {entry: string[], generateOutline?: boolean, cachePages?: boolean, removeTitleElt?: boolean};
+  options: Options;
 
   constructor(options) {
     this.options = options;
@@ -185,13 +214,13 @@ module.exports = class BookPlugin {
 
         let bookRequire;
 
-        const createAsset = (moduleId: string, page, webpackModule: WebpackModule) => {
+        const createAsset = (moduleId: string, page: Page, webpackModule: WebpackModule) => {
           const fileDependencies = new Set(webpackModule.fileDependencies);
-          let {html, attributes={}, template: templateModuleId, toc: tocModuleId} = page;
+          let {attributes={}, template: templateModuleId, toc: tocModuleId} = page;
           const publicUrl = page.toString();
 
           // the page with some extra attributes for the template
-          const renderingPage = Object.assign({}, page);
+          const renderingPage: RenderingPage = Object.assign({}, page, {toc: undefined, options});
 
           if (tocModuleId != null) {
             const toc = getToc(tocModuleId);
@@ -217,10 +246,11 @@ module.exports = class BookPlugin {
             }
           }
 
-          Object.assign(renderingPage, {attributes, options});
+          renderingPage.attributes = attributes;
 
+          let html: string;
           try {
-            html = html(renderingPage);
+            html = page.html(renderingPage);
           } catch (e) {
             e.module = getWebpackModule(moduleId);
             e.details = e.stack;
@@ -252,15 +282,14 @@ module.exports = class BookPlugin {
             }
           }
 
-          renderingPage.title = title;
-          renderingPage.titleHtml = titleHtml;
+          const renderingPageForTemplate: RenderingPageForTemplate = { ...renderingPage, title, titleHtml, html: () => html};
 
           let completeHtml = html;
           if (templateModuleId) {
             const templateWebpackModule = getWebpackModule(templateModuleId);
             try {
-              const templatePage = bookRequire(templateModuleId);
-              completeHtml = templatePage.html(Object.assign({}, renderingPage, {html: () => html}));
+              const templatePage: Page = bookRequire(templateModuleId);
+              completeHtml = templatePage.html(renderingPageForTemplate);
             } catch (e) {
               e.module = templateWebpackModule;
               compilation.errors.push(e);
