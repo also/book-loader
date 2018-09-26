@@ -27,6 +27,14 @@ type WebpackAsset = {
   source: () => string
 };
 
+type Toc = {
+  html: string
+  $: any
+  page: Page
+  pages: {url: string, title: string}[]
+  webpackModule: WebpackModule
+}
+
 
 type WebpackCompilation = {
   chunks: WebpackChunk[],
@@ -49,7 +57,9 @@ type WebpackRequire = ((string) => CompiledModule) & {
   c: {[moduleId: string]: WebpackRuntimeModule}
 }
 
-type Page = any;
+type Page = {
+  url: string
+};
 
 type WebpackError = Error & {module?: any};
 
@@ -117,12 +127,13 @@ module.exports = class BookPlugin {
           return result;
         }
 
-        const tocs = new Map();
+        // TODO why null instead of unset?
+        const tocs: Map<string, Toc | null> = new Map();
 
         const getToc = (tocModuleId) => {
           tocModuleId = '' + tocModuleId;
           const webpackModule = getWebpackModule(tocModuleId);
-          let toc;
+          let toc: Toc | null | undefined;
           if (tocs.has(tocModuleId)) {
             toc = tocs.get(tocModuleId);
             if (!toc) {
@@ -174,7 +185,7 @@ module.exports = class BookPlugin {
 
         let bookRequire;
 
-        const createAsset = (moduleId, page, webpackModule) => {
+        const createAsset = (moduleId: string, page, webpackModule: WebpackModule) => {
           const fileDependencies = new Set(webpackModule.fileDependencies);
           let {html, attributes={}, template: templateModuleId, toc: tocModuleId} = page;
           const publicUrl = page.toString();
@@ -198,10 +209,12 @@ module.exports = class BookPlugin {
           }
 
           const basename = webpackModule.resource.split('/').pop();
-          const dateMatch = basename.match(/(^\d{4}-\d{2}-\d{2})-/);
+          if (basename) {
+            const dateMatch = basename.match(/(^\d{4}-\d{2}-\d{2})-/);
 
-          if (dateMatch) {
-            attributes = Object.assign({date: dateMatch[1]}, attributes);
+            if (dateMatch) {
+              attributes = Object.assign({date: dateMatch[1]}, attributes);
+            }
           }
 
           Object.assign(renderingPage, {attributes, options});
