@@ -41,16 +41,20 @@ type WebpackRuntimeModule = {
   // l=loaded
   l: boolean;
 }
-type CompiledModule = {}
+type CompiledModule = unknown;
 
 type WebpackRequire = ((string) => CompiledModule) & {
   m: {[moduleId: string]: WebpackRuntimeModule}
   c: {[moduleId: string]: WebpackRuntimeModule}
 }
 
-type Page = {
+type BasePage = {
   renderer: any,
   webpackModule: WebpackModule
+}
+
+type BaseMultiPage = {
+  renderPages: BasePage[]
 }
 
 module.exports = class BookPlugin {
@@ -175,7 +179,7 @@ module.exports = class BookPlugin {
 
         let bookRequire: WebpackRequire;
 
-        const render = (page: Page) => {
+        const render = (page: BasePage) => {
           const {renderer, webpackModule} = page;
           const moduleId = webpackModule.id.toString();
 
@@ -274,14 +278,24 @@ module.exports = class BookPlugin {
           page.asset = asset;
         };
 
-        function pagesForModule(mod: CompiledModule, webpackModule: WebpackModule): Page[] {
-          const pages: Page[] = [];
-          if (mod.html && mod.url && !mod.isTemplate && mod.emit !== false) {
+        function isPageRenderer(mod: any): mod is BasePage {
+          return mod && mod.url && !mod.isTemplate && mod.emit !== false;
+        }
+
+        function isMultiPage(mod: any): mod is BaseMultiPage {
+          return mod.renderPages;
+        }
+
+        function pagesForModule(mod: CompiledModule, webpackModule: WebpackModule): BasePage[] {
+          const pages: BasePage[] = [];
+          if (isPageRenderer(mod)) {
             pages.push({renderer: mod, webpackModule});
           }
-          if (mod.renderPages) {
+          if (isMultiPage(mod)) {
+            // TODO validate each page with isPageRenderer and throw
             pages.push(...mod.renderPages.map(renderer => ({renderer, webpackModule})));
           }
+
           return pages;
         }
 
