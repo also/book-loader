@@ -5,26 +5,28 @@ const src = path.join(__dirname, 'src');
 
 module.exports = {
   context: src,
-  entry: {},
+  entry: () => ({}),
   output: {
     filename: '[name].js',
-    path: 'dist',
-    publicPath: '/book/'
+    path: path.join(__dirname, 'dist'),
+    publicPath: '/book/',
   },
   module: {
     loaders: [
       {
         test: /\.md$/,
-        loaders: [{
-          loader: 'book-loader',
-          query: {template: path.join(src, 'template.md')}
-        }]
+        loaders: [
+          {
+            loader: 'book-loader',
+            query: {template: path.join(src, 'template.md')},
+          },
+        ],
       },
       {
         test: /\.(png)$/,
-        loader: 'file-loader'
-      }
-    ]
+        loader: 'file-loader',
+      },
+    ],
   },
-  plugins: [new BookPlugin({entry: ['./SUMMARY.md']})]
+  plugins: [new BookPlugin({entry: ['./SUMMARY.md']})],
 };
