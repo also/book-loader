@@ -2,8 +2,9 @@
 /* globals __webpack_public_path__ */
 const lunr = require('lunr');
 
-
-exports.loadIndex = function loadIndex(path=`${__webpack_public_path__}search-index.json`) {
+exports.loadIndex = function loadIndex(
+  path = `${__webpack_public_path__}search-index.json`,
+) {
   var req = new XMLHttpRequest();
 
   req.open('GET', path);
@@ -17,7 +18,9 @@ exports.loadIndex = function loadIndex(path=`${__webpack_public_path__}search-in
       result.search = exports.search.bind(null, result);
       resolve(result);
     });
-    req.addEventListener('error', () => reject(new Error(`Failed loading ${path}`)));
+    req.addEventListener('error', () =>
+      reject(new Error(`Failed loading ${path}`)),
+    );
   });
 };
 

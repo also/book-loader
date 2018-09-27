@@ -1,6 +1,5 @@
 const lunr = require('lunr');
 
-
 module.exports = class LunrPlugin {
   apply(compiler) {
     compiler.plugin('emit', (compilation, callback) => {
@@ -29,7 +28,7 @@ module.exports = class LunrPlugin {
 
       compilation.assets['search-index.json'] = {
         source: () => source,
-        size: () => source.length
+        size: () => source.length,
       };
 
       callback();

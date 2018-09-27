@@ -6,7 +6,6 @@ import {apply as jsTemplate} from './template';
 import helpers from './helpers';
 import markdownIt from 'markdown-it';
 
-
 module.exports = function bookLoader(content: string): string {
   this.cacheable(true);
   const query = loaderUtils.parseQuery(this.query);
@@ -17,8 +16,10 @@ module.exports = function bookLoader(content: string): string {
   if (query.markdown === false || attributes.markdown === false) {
     content = jsTemplate(body);
   } else {
-    const {bookLoaderOptions={}} = this;
-    const md = markdownIt(Object.assign({html: true}, bookLoaderOptions.markdownOptions)).use(markdownJsTemplate);
+    const {bookLoaderOptions = {}} = this;
+    const md = markdownIt(
+      Object.assign({html: true}, bookLoaderOptions.markdownOptions),
+    ).use(markdownJsTemplate);
     if (bookLoaderOptions.markdownPlugins) {
       bookLoaderOptions.markdownPlugins.forEach(md.use.bind(md));
     }
@@ -30,17 +31,25 @@ module.exports = function bookLoader(content: string): string {
   const url = attributes.hasOwnProperty('url')
     ? attributes.url
     : loaderUtils.interpolateName(this, query.name || '[path][name].html', {
-      context,
-      content: content,
-      regExp: query.regExp
-    });
+        context,
+        content: content,
+        regExp: query.regExp,
+      });
 
-  const template = attributes.hasOwnProperty('template') ? attributes.template : query.template;
+  const template = attributes.hasOwnProperty('template')
+    ? attributes.template
+    : query.template;
 
-  const emit = !![attributes.emit, query.emit, url].find((o) => typeof o !== 'undefined');
+  const emit = !![attributes.emit, query.emit, url].find(
+    (o) => typeof o !== 'undefined',
+  );
 
-  return `const helpers = __non_webpack_require__(${JSON.stringify(require.resolve('./helpers'))});
-${Object.keys(helpers).map((k) => `const ${k} = helpers.${k};`).join('\n')}
+  return `const helpers = __non_webpack_require__(${JSON.stringify(
+    require.resolve('./helpers'),
+  )});
+${Object.keys(helpers)
+    .map((k) => `const ${k} = helpers.${k};`)
+    .join('\n')}
 
 exports.toString = () => __webpack_public_path__ + ${JSON.stringify(url)};
 
@@ -54,7 +63,9 @@ exports.attributes = ${JSON.stringify(attributes, null, 2)};
 
 exports.html = (context) => ${content};
 
-exports.template = ${template ? `require.resolve(${JSON.stringify(template)})` : 'undefined'};
+exports.template = ${
+    template ? `require.resolve(${JSON.stringify(template)})` : 'undefined'
+  };
 
 exports.toc = ${toc ? `require.resolve(${JSON.stringify(toc)})` : 'undefined'};
 
