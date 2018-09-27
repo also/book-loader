@@ -3,8 +3,8 @@ import loaderUtils from 'loader-utils';
 import fm from 'front-matter';
 import markdownJsTemplate from './markdown-js-template';
 import {apply as jsTemplate} from './template';
-import helpers from './helpers';
 import markdownIt from 'markdown-it';
+import pageModuleTemplate from './page-module-template';
 
 module.exports = function bookLoader(content: string): string {
   this.cacheable(true);
@@ -44,31 +44,13 @@ module.exports = function bookLoader(content: string): string {
     (o) => typeof o !== 'undefined',
   );
 
-  return `const helpers = __non_webpack_require__(${JSON.stringify(
-    require.resolve('./helpers'),
-  )});
-${Object.keys(helpers)
-    .map((k) => `const ${k} = helpers.${k};`)
-    .join('\n')}
-
-exports.toString = () => __webpack_public_path__ + ${JSON.stringify(url)};
-
-exports.url = ${JSON.stringify(url)};
-
-exports.emit = ${emit};
-
-exports.filename = ${JSON.stringify(path.relative(context, this.resourcePath))};
-
-exports.attributes = ${JSON.stringify(attributes, null, 2)};
-
-exports.html = (context) => ${content};
-
-exports.template = ${
-    template ? `require.resolve(${JSON.stringify(template)})` : 'undefined'
-  };
-
-exports.toc = ${toc ? `require.resolve(${JSON.stringify(toc)})` : 'undefined'};
-
-exports.require = __webpack_require__;
-`;
+  return pageModuleTemplate({
+    url,
+    template,
+    toc,
+    attributes,
+    emit,
+    filename: path.relative(context, this.resourcePath),
+    renderFunctionBody: content,
+  });
 };
