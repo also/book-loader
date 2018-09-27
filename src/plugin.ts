@@ -1,6 +1,7 @@
 const Module = require('module');
 const cheerio = require('cheerio');
 const SingleEntryPlugin = require('webpack/lib/SingleEntryPlugin');
+import PageUrlPlugin from './PageUrlPlugin';
 
 const transformToc = require('./outline');
 const PageUrlDependency = require('./PageUrlDependency');
@@ -104,6 +105,7 @@ module.exports = class BookPlugin {
   }
 
   apply(compiler) {
+    new PageUrlPlugin().apply(compiler);
     const {options} = this;
     options.entry.forEach((entry) => {
       compiler.apply(
@@ -119,15 +121,6 @@ module.exports = class BookPlugin {
       compilation.plugin('normal-module-loader', (context) => {
         context.bookLoaderOptions = options;
       });
-
-      compilation.dependencyFactories.set(
-        PageUrlDependency,
-        normalModuleFactory,
-      );
-      compilation.dependencyTemplates.set(
-        PageUrlDependency,
-        new PageUrlDependency.Template(),
-      );
     });
 
     compiler.plugin(
@@ -137,18 +130,6 @@ module.exports = class BookPlugin {
           // remove cached assets when a module is rebuilt
           delete mod[BOOK_ASSETS];
           delete mod[TOC];
-        });
-
-        normalModuleFactory.plugin('parser', (parser) => {
-          parser.plugin('call book.pageUrl', function(expr) {
-            var param = this.evaluateExpression(expr.arguments[0]);
-            if (param.isString()) {
-              var dep = new PageUrlDependency(param.string, expr.range);
-              dep.loc = expr.loc;
-              this.state.current.addDependency(dep);
-              return true;
-            }
-          });
         });
       },
     );

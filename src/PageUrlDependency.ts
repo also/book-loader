@@ -14,7 +14,8 @@ class PageUrlDependencyTemplate {
   }
 }
 
-class PageUrlDependency extends ModuleDependency {
+export default class PageUrlDependency extends ModuleDependency {
+  static Template = PageUrlDependencyTemplate;
   constructor(request, range) {
     super(request);
     this.range = range;
@@ -24,6 +25,3 @@ class PageUrlDependency extends ModuleDependency {
 }
 
 PageUrlDependency.prototype.type = 'book.pageUrl';
-PageUrlDependency.Template = PageUrlDependencyTemplate;
-
-module.exports = PageUrlDependency;
