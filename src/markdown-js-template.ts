@@ -130,7 +130,7 @@ export default function(md) {
   md.renderer.rules.fence = (tokens, idx, options, env, slf) => {
     const token = tokens[idx];
     if (token.templated) {
-      options = Object.assign({}, options, {highlight: false});
+      options = {...options, highlight: false};
     }
     return fence(tokens, idx, options, env, slf);
   };

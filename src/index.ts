@@ -17,9 +17,10 @@ module.exports = function bookLoader(content: string): string {
     content = jsTemplate(body);
   } else {
     const {bookLoaderOptions = {}} = this;
-    const md = markdownIt(
-      Object.assign({html: true}, bookLoaderOptions.markdownOptions),
-    ).use(markdownJsTemplate);
+    const md = markdownIt({
+      html: true,
+      ...bookLoaderOptions.markdownOptions,
+    }).use(markdownJsTemplate);
     if (bookLoaderOptions.markdownPlugins) {
       bookLoaderOptions.markdownPlugins.forEach(md.use.bind(md));
     }

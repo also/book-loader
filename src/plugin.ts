@@ -267,7 +267,7 @@ module.exports = class BookPlugin {
             const dateMatch = basename.match(/(^\d{4}-\d{2}-\d{2})-/);
 
             if (dateMatch) {
-              attributes = Object.assign({date: dateMatch[1]}, attributes);
+              attributes = {date: dateMatch[1], ...attributes};
             }
           }
 
