@@ -1,6 +1,5 @@
 const ModuleDependency = require('webpack/lib/dependencies/ModuleDependency');
 
-
 class PageUrlDependencyTemplate {
   apply(dep, source, outputOptions, requestShortener) {
     const comment = outputOptions.pathinfo

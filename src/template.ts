@@ -1,11 +1,11 @@
 export type Env = {
-  jsTemplateReplacements: string[]
+  jsTemplateReplacements: string[];
 };
 
 type EnvThing = {
-  js?: string
-  raw?: string
-  rawJs?: string
+  js?: string;
+  raw?: string;
+  rawJs?: string;
 };
 
 export function create(): Env {
@@ -35,9 +35,10 @@ export function replace(env: Env, js: string) {
 
 export function postprocess(env: Env, content: string) {
   const replacements = env.jsTemplateReplacements;
-  return content.split(/~~ replacement (\d+) ~~/g)
+  return content
+    .split(/~~ replacement (\d+) ~~/g)
     .map((s, i) => {
-      return (i % 2 == 0) ? JSON.stringify(s) : `(${replacements[parseInt(s)]})`;
+      return i % 2 == 0 ? JSON.stringify(s) : `(${replacements[parseInt(s)]})`;
     })
     .join(' +\n    ');
 }
@@ -52,14 +53,15 @@ export function* generator(s: string): Iterable<EnvThing> {
     const type = parts[i + 1];
     if (type) {
       const rawJs = parts[i + 2];
-      const js = type === '-'
-        ? `escapeHtml(${rawJs})`
-        : rawJs;
+      const js = type === '-' ? `escapeHtml(${rawJs})` : rawJs;
       yield {js, rawJs};
     }
   }
 }
 
 export function apply(s: string): string {
-  return Array.from(generator(s), ({js, raw}) => js ? `(${js})` : JSON.stringify(raw)).join(' +\n    ');
+  return Array.from(
+    generator(s),
+    ({js, raw}) => (js ? `(${js})` : JSON.stringify(raw)),
+  ).join(' +\n    ');
 }

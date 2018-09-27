@@ -36,7 +36,7 @@ module.exports = function transformToc($) {
       }
       return result({
         type: 'text',
-        simple: true
+        simple: true,
       });
     } else if (elt.tagName === 'ul') {
       return result({
@@ -57,7 +57,9 @@ module.exports = function transformToc($) {
         const title = children.slice(0, firstListIndex);
         const titleElts = title.map(({elt}) => elt);
 
-        const titleText = $.text(titleElts).replace(/\s+/g, ' ').trim();
+        const titleText = $.text(titleElts)
+          .replace(/\s+/g, ' ')
+          .trim();
         // TODO this is a hack to get cheerio to find an a tag at the root or
         // a child of any of the titleElts. It normally only searches children.
         const url = $('a', [{children: titleElts}]).attr('href');
@@ -68,7 +70,11 @@ module.exports = function transformToc($) {
           if (child.type === 'list') {
             entries.push(...child.children);
           } else {
-            throw new Error(`Found unexpected "${child.elt.tagName}" tag after list in "${titleText}": ${$.html(child.elt)}`);
+            throw new Error(
+              `Found unexpected "${
+                child.elt.tagName
+              }" tag after list in "${titleText}": ${$.html(child.elt)}`,
+            );
           }
         });
 
@@ -77,17 +83,17 @@ module.exports = function transformToc($) {
           title,
           titleText,
           url,
-          children: entries
+          children: entries,
         });
       }
     } else if (elt.tagName === 'a') {
       return result({
-        attrs: elt.attribs
+        attrs: elt.attribs,
       });
     } else {
       return result({
         simple: simpleChildren,
-        attrs: elt.attribs
+        attrs: elt.attribs,
       });
     }
   }
@@ -107,7 +113,7 @@ module.exports.generateBreadcrumbs = function generateBreadcrumbs(outline) {
       }
     }
     if (node.children) {
-      node.children.forEach(child => recurse(child, path));
+      node.children.forEach((child) => recurse(child, path));
     }
   };
 
