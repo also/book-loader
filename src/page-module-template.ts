@@ -48,7 +48,5 @@ exports.template = ${
   };
 
 exports.toc = ${toc ? `require.resolve(${JSON.stringify(toc)})` : 'undefined'};
-
-exports.require = __webpack_require__;
 `;
 }

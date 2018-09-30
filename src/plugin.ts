@@ -1,6 +1,6 @@
 const Module = require('module');
 const cheerio = require('cheerio');
-const SingleEntryPlugin = require('webpack/lib/SingleEntryPlugin');
+const MultiEntryPlugin = require('webpack/lib/MultiEntryPlugin');
 import PageUrlPlugin from './PageUrlPlugin';
 
 const transformToc = require('./outline');
@@ -26,6 +26,7 @@ type WebpackModule = {
 };
 
 type WebpackChunk = {
+  name: string;
   modules: WebpackModule[];
   entryModule: WebpackModule;
   files: any;
@@ -107,12 +108,13 @@ module.exports = class BookPlugin {
   apply(compiler) {
     new PageUrlPlugin().apply(compiler);
     const {options} = this;
+    let i = 0;
     options.entry.forEach((entry) => {
       compiler.apply(
-        new SingleEntryPlugin(
+        new MultiEntryPlugin(
           compiler.options.context,
-          entry,
-          `book-loader-${entry}`,
+          [entry, require.resolve('./entry')],
+          `book-loader-entry-${i++}`,
         ),
       );
     });
@@ -136,12 +138,7 @@ module.exports = class BookPlugin {
 
     compiler.plugin('emit', (compilation: WebpackCompilation, callback) => {
       compilation.chunks = compilation.chunks.filter((chunk) => {
-        // skip chunks without a book entry point
-        if (
-          !(chunk.entryModule.loaders || []).find(
-            (s) => s.loader.indexOf('book-loader/lib/index.js') >= 0,
-          )
-        ) {
+        if (!chunk.name.startsWith('book-loader-entry-')) {
           return true;
         }
 
@@ -345,7 +342,7 @@ module.exports = class BookPlugin {
         try {
           const mainSource: string = compilation.assets[files[0]].source();
 
-          const filename = chunk.entryModule.resource;
+          const filename = chunk.entryModule.dependencies[0].module.resource;
           const m = new Module(filename, chunk.entryModule);
           m.paths = Module._nodeModulePaths(chunk.entryModule.context);
           m.filename = filename;
