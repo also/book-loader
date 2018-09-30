@@ -223,11 +223,7 @@ module.exports = class BookPlugin {
 
         let bookRequire;
 
-        const createAsset = (
-          moduleId: string,
-          page: Page,
-          webpackModule: WebpackModule,
-        ) => {
+        const createAsset = (page: Page, webpackModule: WebpackModule) => {
           const fileDependencies = new Set(webpackModule.fileDependencies);
           let {
             attributes = {},
@@ -274,7 +270,7 @@ module.exports = class BookPlugin {
           try {
             html = page.html(renderingPage);
           } catch (e) {
-            e.module = getWebpackModule(moduleId);
+            e.module = webpackModule;
             e.details = e.stack;
             compilation.errors.push(e);
             html = `build error`;
@@ -284,7 +280,7 @@ module.exports = class BookPlugin {
 
           let {title, titleHtml = title} = attributes;
           if (!title) {
-            if (tocs.has(moduleId)) {
+            if (tocs.has(webpackModule.id.toString())) {
               title = 'Table of Contents';
             } else {
               const titleElts = $('h1, h2');
@@ -378,11 +374,7 @@ module.exports = class BookPlugin {
                   assets = {};
                   pages.forEach(
                     (page) =>
-                      (assets[page.url] = createAsset(
-                        moduleId,
-                        page,
-                        webpackMod,
-                      )),
+                      (assets[page.url] = createAsset(page, webpackMod)),
                   );
                   if (options.cachePages) {
                     webpackMod[BOOK_ASSETS] = assets;
