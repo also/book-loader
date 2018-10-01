@@ -1,22 +1,30 @@
-module.exports = function transformToc($) {
-  function readToc(elt) {
+type Node = {
+  type: string;
+  children: Node[];
+  simple?: boolean;
+  list: boolean;
+  elt: any;
+};
+
+export function transformToc($) {
+  function readToc(elt): Node[] {
     if (elt.type === 'comment') {
       return [];
     }
 
-    const children = [];
+    const children: Node[] = [];
 
     const $elt = $(elt);
     $elt.contents().each((i, child) => {
       children.push(...readToc(child));
     });
 
-    const simpleChildren = children.every(({simple}) => simple);
+    const simpleChildren = children.every(({simple}) => !!simple);
     const listChildren = children.some(({list}) => list);
     let html = simpleChildren ? $elt.html() || elt.data : null;
 
-    function result(opts) {
-      const base = {type: opts.type || elt.tagName, list: listChildren};
+    function result(opts): Node[] {
+      const base: any = {type: opts.type || elt.tagName, list: listChildren};
       // elt is non-enumerable so the result is easy to stringify
       Object.defineProperty(base, 'elt', {enumerable: false, value: elt});
       if (!simpleChildren) {
@@ -65,7 +73,7 @@ module.exports = function transformToc($) {
         const url = $('a', [{children: titleElts}]).attr('href');
 
         const listChildren = children.slice(firstListIndex);
-        const entries = [];
+        const entries: Node[] = [];
         listChildren.forEach((child) => {
           if (child.type === 'list') {
             entries.push(...child.children);
@@ -99,9 +107,9 @@ module.exports = function transformToc($) {
   }
   const outline = readToc($.root().get(0))[0];
   return outline;
-};
+}
 
-module.exports.generateBreadcrumbs = function generateBreadcrumbs(outline) {
+export function generateBreadcrumbs(outline) {
   const result = new Map();
   const recurse = (node, path) => {
     if (node.type === 'entry') {
@@ -120,4 +128,4 @@ module.exports.generateBreadcrumbs = function generateBreadcrumbs(outline) {
   recurse(outline, []);
 
   return result;
-};
+}
