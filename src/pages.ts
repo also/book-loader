@@ -25,6 +25,12 @@ export type Page = {
   toc: WebpackModuleId;
 };
 
+export type RenderedPage = {
+  html: string;
+  title: string;
+  $: any;
+};
+
 type TocPageInfo = {url: string; title: string};
 
 type RenderingPage = {
@@ -57,11 +63,11 @@ type RenderContext = {
 
 const TOCS = Symbol('TOCS');
 
-export const createAsset = (
+export function createAsset(
   context: RenderContext,
   page: Page,
   webpackModule: WebpackModule,
-) => {
+): RenderedPage {
   const {options, compilation, bookRequire, getWebpackModule} = context;
   const fileDependencies = new Set(webpackModule.fileDependencies);
   let {attributes = {}, template: templateModuleId, toc: tocModuleId} = page;
@@ -158,15 +164,12 @@ export const createAsset = (
 
   webpackModule.fileDependencies = Array.from(fileDependencies);
 
-  const asset = {
-    source: () => completeHtml,
-    size: () => completeHtml.length,
+  return {
+    html: completeHtml,
     $,
     title,
   };
-
-  return asset;
-};
+}
 
 function getTocs(context: RenderContext): Map<string, Toc | null> {
   let tocs: Map<string, Toc | null> = context[TOCS];

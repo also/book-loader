@@ -2,11 +2,11 @@ const Module = require('module');
 const cheerio = require('cheerio');
 const MultiEntryPlugin = require('webpack/lib/MultiEntryPlugin');
 import PageUrlPlugin from './PageUrlPlugin';
-import {Page, Toc, createAsset} from './pages';
+import {Page, RenderedPage, createAsset} from './pages';
 
 const PageUrlDependency = require('./PageUrlDependency');
 
-const BOOK_ASSETS = Symbol('BOOK_ASSETS');
+const RENDERED_PAGES = Symbol('RENDERED_PAGES');
 export const TOC = Symbol('TOC');
 
 export type WebpackModuleId = number | string;
@@ -61,6 +61,12 @@ type WebpackRequire = ((string) => CompiledModule) & {
 
 export type WebpackError = Error & {module?: any};
 
+type CachedPage = {
+  page: Page;
+  renderedPage: RenderedPage;
+  asset: WebpackAsset;
+};
+
 module.exports = class BookPlugin {
   options: Options;
 
@@ -93,7 +99,7 @@ module.exports = class BookPlugin {
       (compilation: WebpackCompilation, {normalModuleFactory}) => {
         compilation.plugin('build-module', (mod: WebpackModule) => {
           // remove cached assets when a module is rebuilt
-          delete mod[BOOK_ASSETS];
+          delete mod[RENDERED_PAGES];
           delete mod[TOC];
         });
       },
@@ -156,24 +162,33 @@ module.exports = class BookPlugin {
               if (mod.renderPages) {
                 pages.push(...mod.renderPages);
               }
+
               if (pages.length > 0) {
                 const webpackMod = getWebpackModule(moduleId);
-                let assets = webpackMod[BOOK_ASSETS];
-                if (!assets) {
-                  assets = {};
-                  pages.forEach(
-                    (page) =>
-                      (assets[page.url] = createAsset(
-                        renderContext,
-                        page,
-                        webpackMod,
-                      )),
-                  );
+                let renderedPages: CachedPage[] = webpackMod[RENDERED_PAGES];
+                if (!renderedPages) {
+                  renderedPages = pages.map((page) => {
+                    const renderedPage = createAsset(
+                      renderContext,
+                      page,
+                      webpackMod,
+                    );
+                    return {
+                      renderedPage,
+                      page,
+                      asset: {
+                        source: () => renderedPage.html,
+                        size: () => renderedPage.html.length,
+                      },
+                    };
+                  });
                   if (options.cachePages) {
-                    webpackMod[BOOK_ASSETS] = assets;
+                    webpackMod[RENDERED_PAGES] = renderedPages;
                   }
                 }
-                Object.assign(compilation.assets, assets);
+                renderedPages.forEach(({page, asset}) => {
+                  compilation.assets[page.url] = asset;
+                });
               }
             }
           });
