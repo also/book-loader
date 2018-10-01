@@ -140,14 +140,14 @@ module.exports = class BookPlugin {
         }
 
         try {
-          const req = compile(compilation, chunk).require;
+          const entry = compile(compilation, chunk);
 
           function bookRequire(moduleId) {
             // TODO why are modules that throw errors ending up in the cache?
             if (installedModules[moduleId] && !installedModules[moduleId].l) {
               delete installedModules[moduleId];
             }
-            return req(moduleId);
+            return entry.require(moduleId);
           }
 
           const renderContext = {
@@ -157,10 +157,10 @@ module.exports = class BookPlugin {
             getWebpackModule,
           };
 
-          req.context = renderContext;
+          entry.context = renderContext;
 
-          const modules = req.m;
-          const installedModules = req.c;
+          const modules = entry.require.m;
+          const installedModules = entry.require.c;
           Object.keys(modules).forEach((moduleId) => {
             try {
               bookRequire(moduleId)[WEBPACK_MODULE] = getWebpackModule(
