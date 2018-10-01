@@ -70,16 +70,21 @@ export const WEBPACK_MODULE = Symbol('WEBPACK_MODULE');
 export function render(
   context: RenderContext,
   page: Page,
+  webpackModule?: WebpackModule,
 ): RenderingPageForTemplate {
   let result = page[RENDERED_PAGE];
 
   if (!result) {
-    const webpackModule = page[WEBPACK_MODULE];
+    if (!webpackModule) {
+      webpackModule = page[WEBPACK_MODULE];
+    }
+    if (!webpackModule) {
+      throw new Error('missing WEBPACK_MODULE');
+    }
     const {options, compilation} = context;
     const fileDependencies = new Set(webpackModule.fileDependencies);
     let {attributes = {}, toc: tocModuleId} = page;
     const publicUrl = page.toString();
-    console.log({rendering: publicUrl});
 
     // the page with some extra attributes for the template
     const renderingPage: RenderingPage = Object.assign({}, page, {

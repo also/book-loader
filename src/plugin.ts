@@ -1,7 +1,7 @@
 const Module = require('module');
 const cheerio = require('cheerio');
 const MultiEntryPlugin = require('webpack/lib/MultiEntryPlugin');
-import webpack from 'webpack';
+const webpack = require('webpack');
 import PageUrlPlugin from './PageUrlPlugin';
 import {Page, RenderedPage, createAsset, WEBPACK_MODULE} from './pages';
 
