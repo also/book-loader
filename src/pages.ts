@@ -46,7 +46,8 @@ type RenderingPageForTemplate = {
   url: string;
   title: string;
   titleHtml: string;
-  html: (p: RenderingPage) => string;
+  html: () => string;
+  $: any;
   attributes: {[key: string]: any};
   toc?: Page;
   previous?: TocPageInfo;
@@ -63,92 +64,117 @@ type RenderContext = {
 
 const TOCS = Symbol('TOCS');
 
+const RENDERED_PAGE = Symbol('RENDERED_PAGE');
+export const WEBPACK_MODULE = Symbol('WEBPACK_MODULE');
+
+export function render(
+  context: RenderContext,
+  page: Page,
+): RenderingPageForTemplate {
+  let result = page[RENDERED_PAGE];
+
+  if (!result) {
+    const webpackModule = page[WEBPACK_MODULE];
+    const {options, compilation} = context;
+    const fileDependencies = new Set(webpackModule.fileDependencies);
+    let {attributes = {}, toc: tocModuleId} = page;
+    const publicUrl = page.toString();
+    console.log({rendering: publicUrl});
+
+    // the page with some extra attributes for the template
+    const renderingPage: RenderingPage = Object.assign({}, page, {
+      toc: undefined,
+      options,
+    });
+
+    if (tocModuleId != null) {
+      const toc = getToc(context, tocModuleId);
+      if (toc) {
+        renderingPage.toc = toc.page;
+        fileDependencies.add(toc.webpackModule.resource);
+
+        const pageIndex = toc.pages.findIndex(
+          ({url: tocUrl}) => publicUrl === tocUrl,
+        );
+
+        if (pageIndex !== -1) {
+          renderingPage.previous = toc.pages[pageIndex - 1];
+          renderingPage.next = toc.pages[pageIndex + 1];
+        }
+      }
+    }
+
+    const basename = webpackModule.resource.split('/').pop();
+    if (basename) {
+      const dateMatch = basename.match(/(^\d{4}-\d{2}-\d{2})-/);
+
+      if (dateMatch) {
+        attributes = {date: dateMatch[1], ...attributes};
+      }
+    }
+
+    renderingPage.attributes = attributes;
+
+    let html: string;
+    try {
+      html = page.html(renderingPage);
+    } catch (e) {
+      e.module = webpackModule;
+      e.details = e.stack;
+      compilation.errors.push(e);
+      html = `build error`;
+    }
+
+    const $ = cheerio.load(html);
+
+    let {title, titleHtml = title} = attributes;
+    if (!title) {
+      if (getTocs(context).has(webpackModule.id.toString())) {
+        title = 'Table of Contents';
+      } else {
+        const titleElts = $('h1, h2');
+        if (titleElts.length === 0) {
+          const e: WebpackError = new Error(`No h1 or h2 or title attribute`);
+          e.module = webpackModule;
+          compilation.warnings.push(e);
+        } else {
+          const titleElt = titleElts.first();
+          title = titleElt.text();
+          titleHtml = titleElt.html();
+          if (options.removeTitleElt) {
+            titleElt.remove();
+            html = $.html($.root());
+          }
+        }
+      }
+    }
+
+    webpackModule.fileDependencies = Array.from(fileDependencies);
+
+    result = {
+      ...renderingPage,
+      title,
+      titleHtml,
+      html: () => html,
+      $,
+    };
+    page[RENDERED_PAGE] = result;
+  }
+  return result;
+}
+
 export function createAsset(
   context: RenderContext,
   page: Page,
   webpackModule: WebpackModule,
 ): RenderedPage {
-  const {options, compilation, bookRequire, getWebpackModule} = context;
+  const {compilation, getWebpackModule, bookRequire} = context;
+  let {template: templateModuleId} = page;
   const fileDependencies = new Set(webpackModule.fileDependencies);
-  let {attributes = {}, template: templateModuleId, toc: tocModuleId} = page;
-  const publicUrl = page.toString();
 
-  // the page with some extra attributes for the template
-  const renderingPage: RenderingPage = Object.assign({}, page, {
-    toc: undefined,
-    options,
-  });
+  const renderingPageForTemplate = render(context, page, webpackModule);
 
-  if (tocModuleId != null) {
-    const toc = getToc(context, tocModuleId);
-    if (toc) {
-      renderingPage.toc = toc.page;
-      fileDependencies.add(toc.webpackModule.resource);
-
-      const pageIndex = toc.pages.findIndex(
-        ({url: tocUrl}) => publicUrl === tocUrl,
-      );
-
-      if (pageIndex !== -1) {
-        renderingPage.previous = toc.pages[pageIndex - 1];
-        renderingPage.next = toc.pages[pageIndex + 1];
-      }
-    }
-  }
-
-  const basename = webpackModule.resource.split('/').pop();
-  if (basename) {
-    const dateMatch = basename.match(/(^\d{4}-\d{2}-\d{2})-/);
-
-    if (dateMatch) {
-      attributes = {date: dateMatch[1], ...attributes};
-    }
-  }
-
-  renderingPage.attributes = attributes;
-
-  let html: string;
-  try {
-    html = page.html(renderingPage);
-  } catch (e) {
-    e.module = webpackModule;
-    e.details = e.stack;
-    compilation.errors.push(e);
-    html = `build error`;
-  }
-
-  const $ = cheerio.load(html);
-
-  let {title, titleHtml = title} = attributes;
-  if (!title) {
-    if (getTocs(context).has(webpackModule.id.toString())) {
-      title = 'Table of Contents';
-    } else {
-      const titleElts = $('h1, h2');
-      if (titleElts.length === 0) {
-        const e: WebpackError = new Error(`No h1 or h2 or title attribute`);
-        e.module = webpackModule;
-        compilation.warnings.push(e);
-      } else {
-        const titleElt = titleElts.first();
-        title = titleElt.text();
-        titleHtml = titleElt.html();
-        if (options.removeTitleElt) {
-          titleElt.remove();
-          html = $.html($.root());
-        }
-      }
-    }
-  }
-
-  const renderingPageForTemplate: RenderingPageForTemplate = {
-    ...renderingPage,
-    title,
-    titleHtml,
-    html: () => html,
-  };
-
-  let completeHtml = html;
+  let completeHtml = renderingPageForTemplate.html();
   if (templateModuleId) {
     const templateWebpackModule = getWebpackModule(templateModuleId);
     try {
@@ -166,8 +192,8 @@ export function createAsset(
 
   return {
     html: completeHtml,
-    $,
-    title,
+    $: renderingPageForTemplate.$,
+    title: renderingPageForTemplate.title,
   };
 }
 

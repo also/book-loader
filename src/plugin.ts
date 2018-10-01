@@ -1,10 +1,9 @@
 const Module = require('module');
 const cheerio = require('cheerio');
 const MultiEntryPlugin = require('webpack/lib/MultiEntryPlugin');
+import webpack from 'webpack';
 import PageUrlPlugin from './PageUrlPlugin';
-import {Page, RenderedPage, createAsset} from './pages';
-
-const PageUrlDependency = require('./PageUrlDependency');
+import {Page, RenderedPage, createAsset, WEBPACK_MODULE} from './pages';
 
 const RENDERED_PAGES = Symbol('RENDERED_PAGES');
 export const TOC = Symbol('TOC');
@@ -75,7 +74,16 @@ module.exports = class BookPlugin {
   }
 
   apply(compiler) {
+    const resolveAlias = (compiler.options.resolve.alias =
+      compiler.options.resolve.alias || {});
+    resolveAlias['book-loader/pages$'] = require.resolve('./pages-api');
+
+    compiler.apply(
+      new webpack.DefinePlugin({BOOK_LOADER_DIR: JSON.stringify(__dirname)}),
+    );
+
     new PageUrlPlugin().apply(compiler);
+
     const {options} = this;
     let i = 0;
     options.entry.forEach((entry) => {
@@ -132,7 +140,15 @@ module.exports = class BookPlugin {
         }
 
         try {
-          const bookRequire = compile(compilation, chunk).require;
+          const req = compile(compilation, chunk).require;
+
+          function bookRequire(moduleId) {
+            // TODO why are modules that throw errors ending up in the cache?
+            if (installedModules[moduleId] && !installedModules[moduleId].l) {
+              delete installedModules[moduleId];
+            }
+            return req(moduleId);
+          }
 
           const renderContext = {
             options,
@@ -141,13 +157,18 @@ module.exports = class BookPlugin {
             getWebpackModule,
           };
 
-          const modules = bookRequire.m;
-          const installedModules = bookRequire.c;
+          req.context = renderContext;
+
+          const modules = req.m;
+          const installedModules = req.c;
           Object.keys(modules).forEach((moduleId) => {
-            // TODO why are modules that throw errors ending up in the cache?
-            if (installedModules[moduleId] && !installedModules[moduleId].l) {
-              delete installedModules[moduleId];
-            }
+            try {
+              bookRequire(moduleId)[WEBPACK_MODULE] = getWebpackModule(
+                moduleId,
+              );
+            } catch (e) {}
+          });
+          Object.keys(modules).forEach((moduleId) => {
             const mod = bookRequire(moduleId);
             if (mod) {
               const pages: Page[] = [];
