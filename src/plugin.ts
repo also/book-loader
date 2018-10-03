@@ -200,6 +200,8 @@ module.exports = class BookPlugin {
                       asset: {
                         source: () => renderedPage.html,
                         size: () => renderedPage.html.length,
+                        page,
+                        renderedPage,
                       },
                     };
                   });
