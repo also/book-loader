@@ -200,7 +200,7 @@ export function createAsset(
     html: completeHtml,
     $: renderingPageForTemplate.$,
     title: renderingPageForTemplate.title,
-    attributes: page.attributes,
+    attributes: renderingPageForTemplate.attributes,
   };
 }
 
