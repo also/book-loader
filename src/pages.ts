@@ -26,6 +26,7 @@ export type Page = {
 };
 
 export type RenderedPage = {
+  filename: string;
   html: string;
   title: string;
   $: any;
@@ -197,6 +198,7 @@ export function createAsset(
   webpackModule.fileDependencies = Array.from(fileDependencies);
 
   return {
+    filename: webpackModule.resource,
     html: completeHtml,
     $: renderingPageForTemplate.$,
     title: renderingPageForTemplate.title,
