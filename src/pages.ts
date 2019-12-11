@@ -29,6 +29,7 @@ export type RenderedPage = {
   html: string;
   title: string;
   $: any;
+  attributes: {[key: string]: any};
 };
 
 type TocPageInfo = {url: string; title: string};
@@ -199,6 +200,7 @@ export function createAsset(
     html: completeHtml,
     $: renderingPageForTemplate.$,
     title: renderingPageForTemplate.title,
+    attributes: page.attributes
   };
 }
 
