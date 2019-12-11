@@ -1,6 +1,6 @@
 {
   "name": "book-loader",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "dependencies": {
     "@types/node": "^12.12.17",
     "cheerio": "^0.20.0",
