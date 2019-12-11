@@ -2,10 +2,6 @@
 # yarn lockfile v1
 
 
-"@types/node@^12.12.17":
-  version "12.12.17"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.12.17.tgz#191b71e7f4c325ee0fb23bc4a996477d92b8c39b"
-
 abab@^1.0.0:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/abab/-/abab-1.0.4.tgz#5faad9c2c07f60dd76770f71cf025b62a63cfd4e"
@@ -285,9 +281,8 @@ bonjour@^3.5.0:
     multicast-dns-service-types "^1.1.0"
 
 "book-loader@file:..":
-  version "0.3.3"
+  version "0.3.4"
   dependencies:
-    "@types/node" "^12.12.17"
     cheerio "^0.20.0"
     front-matter "^2.3.0"
     loader-utils "^0.2.14"

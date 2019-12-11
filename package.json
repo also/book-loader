@@ -2,7 +2,6 @@
   "name": "book-loader",
   "version": "0.3.4",
   "dependencies": {
-    "@types/node": "^12.12.17",
     "cheerio": "^0.20.0",
     "front-matter": "^2.3.0",
     "loader-utils": "^0.2.14",
@@ -14,6 +13,7 @@
   "devDependencies": {
     "@types/jest": "^23.3.2",
     "@types/markdown-it": "^0.0.5",
+    "@types/node": "^12.12.17",
     "eslint": "^3.13.1",
     "jest": "24.9.0",
     "prettier": "^1.14.3",
