@@ -42,13 +42,13 @@ test('handles templates at top level', () => {
 });
 
 test('handles templates in html block tags', () => {
-  const md = createMd({html: true});
+  const md = createMd({ html: true });
   const result = md.render('<p><%= variable %></p>');
   expect(result).toMatchSnapshot();
 });
 
 test('handles templates in html block tags', () => {
-  const md = createMd({html: true});
+  const md = createMd({ html: true });
   const result = md.render('<p>here is a variable: <%= variable %>!</p>');
   expect(result).toMatchSnapshot();
 });
@@ -60,7 +60,9 @@ test('handles templates in markdown blocks', () => {
 });
 
 test('handles templates in inline html', () => {
-  const md = createMd({html: true});
-  const result = md.render('Check out this variable: <code><%= variable %></code>');
+  const md = createMd({ html: true });
+  const result = md.render(
+    'Check out this variable: <code><%= variable %></code>'
+  );
   expect(result).toMatchSnapshot();
 });

@@ -2,19 +2,19 @@ import PageUrlDependency from './PageUrlDependency';
 
 export default class PageUrlPlugin {
   apply(compiler) {
-    compiler.plugin('compilation', (compilation, {normalModuleFactory}) => {
+    compiler.plugin('compilation', (compilation, { normalModuleFactory }) => {
       compilation.dependencyFactories.set(
         PageUrlDependency,
-        normalModuleFactory,
+        normalModuleFactory
       );
       compilation.dependencyTemplates.set(
         PageUrlDependency,
-        new PageUrlDependency.Template(),
+        new PageUrlDependency.Template()
       );
     });
 
-    compiler.plugin('compilation', (_, {normalModuleFactory}) => {
-      normalModuleFactory.plugin('parser', (parser) => {
+    compiler.plugin('compilation', (_, { normalModuleFactory }) => {
+      normalModuleFactory.plugin('parser', parser => {
         parser.plugin('call book.pageUrl', function(expr) {
           var param = this.evaluateExpression(expr.arguments[0]);
           if (param.isString()) {

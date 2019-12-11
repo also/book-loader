@@ -6,7 +6,7 @@ import {
   TOC,
   WebpackError,
 } from './plugin';
-import {transformToc, generateBreadcrumbs} from './outline';
+import { transformToc, generateBreadcrumbs } from './outline';
 import cheerio from 'cheerio';
 
 export type Toc = {
@@ -20,7 +20,7 @@ export type Toc = {
 export type Page = {
   url: string;
   html: (p: RenderingPage) => string;
-  attributes: {[key: string]: any};
+  attributes: { [key: string]: any };
   template: WebpackModuleId;
   toc: WebpackModuleId;
 };
@@ -29,14 +29,14 @@ export type RenderedPage = {
   html: string;
   title: string;
   $: any;
-  attributes: {[key: string]: any};
+  attributes: { [key: string]: any };
 };
 
-type TocPageInfo = {url: string; title: string};
+type TocPageInfo = { url: string; title: string };
 
 type RenderingPage = {
   url: string;
-  attributes: {[key: string]: any};
+  attributes: { [key: string]: any };
   toc?: Page;
   previous?: TocPageInfo;
   next?: TocPageInfo;
@@ -49,7 +49,7 @@ type RenderingPageForTemplate = {
   titleHtml: string;
   html: () => string;
   $: any;
-  attributes: {[key: string]: any};
+  attributes: { [key: string]: any };
   toc?: Page;
   previous?: TocPageInfo;
   next?: TocPageInfo;
@@ -71,7 +71,7 @@ export const WEBPACK_MODULE = Symbol('WEBPACK_MODULE');
 export function render(
   context: RenderContext,
   page: Page,
-  webpackModule?: WebpackModule,
+  webpackModule?: WebpackModule
 ): RenderingPageForTemplate {
   let result = page[RENDERED_PAGE];
 
@@ -82,9 +82,9 @@ export function render(
     if (!webpackModule) {
       throw new Error('missing WEBPACK_MODULE');
     }
-    const {options, compilation} = context;
+    const { options, compilation } = context;
     const fileDependencies = new Set(webpackModule.fileDependencies);
-    let {attributes = {}, toc: tocModuleId} = page;
+    let { attributes = {}, toc: tocModuleId } = page;
     const publicUrl = page.toString();
 
     // the page with some extra attributes for the template
@@ -100,7 +100,7 @@ export function render(
         fileDependencies.add(toc.webpackModule.resource);
 
         const pageIndex = toc.pages.findIndex(
-          ({url: tocUrl}) => publicUrl === tocUrl,
+          ({ url: tocUrl }) => publicUrl === tocUrl
         );
 
         if (pageIndex !== -1) {
@@ -115,7 +115,7 @@ export function render(
       const dateMatch = basename.match(/(^\d{4}-\d{2}-\d{2})-/);
 
       if (dateMatch) {
-        attributes = {date: dateMatch[1], ...attributes};
+        attributes = { date: dateMatch[1], ...attributes };
       }
     }
 
@@ -133,7 +133,7 @@ export function render(
 
     const $ = cheerio.load(html);
 
-    let {title, titleHtml = title} = attributes;
+    let { title, titleHtml = title } = attributes;
     if (!title) {
       if (getTocs(context).has(webpackModule.id.toString())) {
         title = 'Table of Contents';
@@ -172,10 +172,10 @@ export function render(
 export function createAsset(
   context: RenderContext,
   page: Page,
-  webpackModule: WebpackModule,
+  webpackModule: WebpackModule
 ): RenderedPage {
-  const {compilation, getWebpackModule, bookRequire} = context;
-  let {template: templateModuleId} = page;
+  const { compilation, getWebpackModule, bookRequire } = context;
+  let { template: templateModuleId } = page;
   const fileDependencies = new Set(webpackModule.fileDependencies);
 
   const renderingPageForTemplate = render(context, page, webpackModule);
@@ -200,7 +200,7 @@ export function createAsset(
     html: completeHtml,
     $: renderingPageForTemplate.$,
     title: renderingPageForTemplate.title,
-    attributes: page.attributes
+    attributes: page.attributes,
   };
 }
 
@@ -214,7 +214,7 @@ function getTocs(context: RenderContext): Map<string, Toc | null> {
 
 function getToc(context: RenderContext, tocModuleId: WebpackModuleId) {
   tocModuleId = tocModuleId + '';
-  const {options, compilation, bookRequire, getWebpackModule} = context;
+  const { options, compilation, bookRequire, getWebpackModule } = context;
   const webpackModule = getWebpackModule(tocModuleId);
   let toc: Toc | null | undefined;
 
@@ -236,9 +236,9 @@ function getToc(context: RenderContext, tocModuleId: WebpackModuleId) {
       const $ = cheerio.load(html);
       const pages = $('a')
         .toArray()
-        .map((a) => {
+        .map(a => {
           a = $(a);
-          return {url: a.attr('href'), title: a.text()};
+          return { url: a.attr('href'), title: a.text() };
         });
 
       if (options.generateOutline) {

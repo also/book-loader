@@ -3,7 +3,7 @@ const cheerio = require('cheerio');
 const MultiEntryPlugin = require('webpack/lib/MultiEntryPlugin');
 const webpack = require('webpack');
 import PageUrlPlugin from './PageUrlPlugin';
-import {Page, RenderedPage, createAsset, WEBPACK_MODULE} from './pages';
+import { Page, RenderedPage, createAsset, WEBPACK_MODULE } from './pages';
 
 const RENDERED_PAGES = Symbol('RENDERED_PAGES');
 export const TOC = Symbol('TOC');
@@ -19,8 +19,8 @@ export type Options = {
 
 export type WebpackModule = {
   id: WebpackModuleId;
-  loaders: {loader: string}[];
-  dependencies: {module?: WebpackModule};
+  loaders: { loader: string }[];
+  dependencies: { module?: WebpackModule };
   resource: string;
   context: string;
   fileDependencies: string[];
@@ -41,7 +41,7 @@ export type WebpackCompilation = {
   chunks: WebpackChunk[];
   errors: any[];
   warnings: any[];
-  assets: {[filename: string]: WebpackAsset};
+  assets: { [filename: string]: WebpackAsset };
   files: any[];
   applyPlugins1: any;
   plugin: any;
@@ -54,11 +54,11 @@ type WebpackRuntimeModule = {
 type CompiledModule = {};
 
 type WebpackRequire = ((string) => CompiledModule) & {
-  m: {[moduleId: string]: WebpackRuntimeModule};
-  c: {[moduleId: string]: WebpackRuntimeModule};
+  m: { [moduleId: string]: WebpackRuntimeModule };
+  c: { [moduleId: string]: WebpackRuntimeModule };
 };
 
-export type WebpackError = Error & {module?: any};
+export type WebpackError = Error & { module?: any };
 
 type CachedPage = {
   page: Page;
@@ -79,47 +79,47 @@ module.exports = class BookPlugin {
     resolveAlias['book-loader/pages$'] = require.resolve('./pages-api');
 
     compiler.apply(
-      new webpack.DefinePlugin({BOOK_LOADER_DIR: JSON.stringify(__dirname)}),
+      new webpack.DefinePlugin({ BOOK_LOADER_DIR: JSON.stringify(__dirname) })
     );
 
     new PageUrlPlugin().apply(compiler);
 
-    const {options} = this;
+    const { options } = this;
     let i = 0;
-    options.entry.forEach((entry) => {
+    options.entry.forEach(entry => {
       compiler.apply(
         new MultiEntryPlugin(
           compiler.options.context,
           [entry, require.resolve('./entry')],
-          `book-loader-entry-${i++}`,
-        ),
+          `book-loader-entry-${i++}`
+        )
       );
     });
 
-    compiler.plugin('compilation', (compilation, {normalModuleFactory}) => {
-      compilation.plugin('normal-module-loader', (context) => {
+    compiler.plugin('compilation', (compilation, { normalModuleFactory }) => {
+      compilation.plugin('normal-module-loader', context => {
         context.bookLoaderOptions = options;
       });
     });
 
     compiler.plugin(
       'compilation',
-      (compilation: WebpackCompilation, {normalModuleFactory}) => {
+      (compilation: WebpackCompilation, { normalModuleFactory }) => {
         compilation.plugin('build-module', (mod: WebpackModule) => {
           // remove cached assets when a module is rebuilt
           delete mod[RENDERED_PAGES];
           delete mod[TOC];
         });
-      },
+      }
     );
 
     compiler.plugin('emit', (compilation: WebpackCompilation, callback) => {
-      compilation.chunks = compilation.chunks.filter((chunk) => {
+      compilation.chunks = compilation.chunks.filter(chunk => {
         if (!chunk.name.startsWith('book-loader-entry-')) {
           return true;
         }
 
-        const {files} = chunk;
+        const { files } = chunk;
         if (files.length !== 1) {
           return true;
         }
@@ -127,8 +127,8 @@ module.exports = class BookPlugin {
         const modulesById: Map<string, WebpackModule> = new Map(
           Array.from(
             chunk.modulesIterable,
-            (mod) => ['' + mod.id, mod] as [string, WebpackModule],
-          ),
+            mod => ['' + mod.id, mod] as [string, WebpackModule]
+          )
         );
 
         function getWebpackModule(id: WebpackModuleId): WebpackModule {
@@ -161,14 +161,14 @@ module.exports = class BookPlugin {
 
           const modules = entry.require.m;
           const installedModules = entry.require.c;
-          Object.keys(modules).forEach((moduleId) => {
+          Object.keys(modules).forEach(moduleId => {
             try {
               bookRequire(moduleId)[WEBPACK_MODULE] = getWebpackModule(
-                moduleId,
+                moduleId
               );
             } catch (e) {}
           });
-          Object.keys(modules).forEach((moduleId) => {
+          Object.keys(modules).forEach(moduleId => {
             const mod = bookRequire(moduleId);
             if (mod) {
               const pages: Page[] = [];
@@ -188,11 +188,11 @@ module.exports = class BookPlugin {
                 const webpackMod = getWebpackModule(moduleId);
                 let renderedPages: CachedPage[] = webpackMod[RENDERED_PAGES];
                 if (!renderedPages) {
-                  renderedPages = pages.map((page) => {
+                  renderedPages = pages.map(page => {
                     const renderedPage = createAsset(
                       renderContext,
                       page,
-                      webpackMod,
+                      webpackMod
                     );
                     return {
                       renderedPage,
@@ -209,7 +209,7 @@ module.exports = class BookPlugin {
                     webpackMod[RENDERED_PAGES] = renderedPages;
                   }
                 }
-                renderedPages.forEach(({page, asset}) => {
+                renderedPages.forEach(({ page, asset }) => {
                   compilation.assets[page.url] = asset;
                 });
               }

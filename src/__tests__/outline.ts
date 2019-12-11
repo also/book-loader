@@ -1,6 +1,6 @@
 const cheerio = require('cheerio');
 const markdownIt = require('markdown-it');
-import {transformToc} from '../outline';
+import { transformToc } from '../outline';
 
 function createHtml(str, options = {}) {
   return cheerio.load(markdownIt(options).render(str));
@@ -13,9 +13,9 @@ it('parses simple outline', () => {
         `
 * [One](one.md)
 * [Two](two.md)
-`,
-      ),
-    ),
+`
+      )
+    )
   ).toMatchSnapshot();
 });
 
@@ -26,9 +26,9 @@ it('parses tag in link', () => {
         `
 * [*One*](one.md)
 * [Two](two.md)
-`,
-      ),
-    ),
+`
+      )
+    )
   ).toMatchSnapshot();
 });
 
@@ -39,9 +39,9 @@ it('parses link in tag', () => {
         `
 * *[One](one.md)*
 * [Two](two.md)
-`,
-      ),
-    ),
+`
+      )
+    )
   ).toMatchSnapshot();
 });
 
@@ -54,9 +54,9 @@ it('parses nested list', () => {
   * [One A](one-a.md)
   * [One b](one-b.md)
 * [Two](two.md)
-`,
-      ),
-    ),
+`
+      )
+    )
   ).toMatchSnapshot();
 });
 
@@ -70,8 +70,8 @@ it('ignores comments', () => {
 
 <!-- ignore me -->
 `,
-        {html: true},
-      ),
-    ),
+        { html: true }
+      )
+    )
   ).toMatchSnapshot();
 });

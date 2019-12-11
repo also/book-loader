@@ -25,11 +25,11 @@ export default function renderString({
   emit,
 }: PageModuleOptions) {
   return `const helpers = __non_webpack_require__(${JSON.stringify(
-    require.resolve('./helpers'),
+    require.resolve('./helpers')
   )});
 ${Object.keys(helpers)
-    .map((k) => `const ${k} = helpers.${k};`)
-    .join('\n')}
+  .map(k => `const ${k} = helpers.${k};`)
+  .join('\n')}
 
 exports.toString = () => __webpack_public_path__ + ${JSON.stringify(url)};
 

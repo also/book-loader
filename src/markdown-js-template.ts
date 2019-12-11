@@ -35,7 +35,7 @@ function urlJs(url: string): string | null {
 }
 
 function splitJavaScriptTokens(token: Token): Token[] {
-  return Array.from(generator(token.content), ({raw, js}) => {
+  return Array.from(generator(token.content), ({ raw, js }) => {
     let replacement;
     if (js) {
       replacement = new Token('javascript', '', 0);
@@ -63,11 +63,11 @@ function replaceJavaScriptAttrs(attrs: Attr[], env: Env): Attr[] {
 
 function expandJavaScriptTokens(tokens: Token[], env: Env): Token[] {
   return ([] as Token[]).concat(
-    ...tokens.map((token) => {
+    ...tokens.map(token => {
       if (token.attrs) {
         token.attrs = replaceJavaScriptAttrs(token.attrs, env);
       }
-      const {type} = token;
+      const { type } = token;
       if (type === 'html_block' || type === 'text' || type === 'html_inline') {
         return splitJavaScriptTokens(token);
       } else if (type === 'inline') {
@@ -83,7 +83,7 @@ function expandJavaScriptTokens(tokens: Token[], env: Env): Token[] {
       } else {
         return [token];
       }
-    }),
+    })
   );
 }
 
@@ -116,7 +116,7 @@ function promoteBlockJavaScript(tokens: Token[]): Token[] {
 function templateTokenize(state) {
   Object.assign(state.env, create());
   state.tokens = promoteBlockJavaScript(
-    expandJavaScriptTokens(state.tokens, state.env),
+    expandJavaScriptTokens(state.tokens, state.env)
   );
 }
 
@@ -130,7 +130,7 @@ export default function(md) {
   md.renderer.rules.fence = (tokens, idx, options, env, slf) => {
     const token = tokens[idx];
     if (token.templated) {
-      options = {...options, highlight: false};
+      options = { ...options, highlight: false };
     }
     return fence(tokens, idx, options, env, slf);
   };

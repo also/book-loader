@@ -19,14 +19,14 @@ export function transformToc($) {
       children.push(...readToc(child));
     });
 
-    const simpleChildren = children.every(({simple}) => !!simple);
-    const listChildren = children.some(({list}) => list);
+    const simpleChildren = children.every(({ simple }) => !!simple);
+    const listChildren = children.some(({ list }) => list);
     let html = simpleChildren ? $elt.html() || elt.data : null;
 
     function result(opts): Node[] {
-      const base: any = {type: opts.type || elt.tagName, list: listChildren};
+      const base: any = { type: opts.type || elt.tagName, list: listChildren };
       // elt is non-enumerable so the result is easy to stringify
-      Object.defineProperty(base, 'elt', {enumerable: false, value: elt});
+      Object.defineProperty(base, 'elt', { enumerable: false, value: elt });
       if (!simpleChildren) {
         base.children = children;
       } else {
@@ -57,31 +57,31 @@ export function transformToc($) {
         return [];
       } else {
         // the title is all the non-list children at the beginning
-        let firstListIndex = children.findIndex(({list}) => list);
+        let firstListIndex = children.findIndex(({ list }) => list);
         if (firstListIndex === -1) {
           firstListIndex = children.length;
         }
 
         const title = children.slice(0, firstListIndex);
-        const titleElts = title.map(({elt}) => elt);
+        const titleElts = title.map(({ elt }) => elt);
 
         const titleText = $.text(titleElts)
           .replace(/\s+/g, ' ')
           .trim();
         // TODO this is a hack to get cheerio to find an a tag at the root or
         // a child of any of the titleElts. It normally only searches children.
-        const url = $('a', [{children: titleElts}]).attr('href');
+        const url = $('a', [{ children: titleElts }]).attr('href');
 
         const listChildren = children.slice(firstListIndex);
         const entries: Node[] = [];
-        listChildren.forEach((child) => {
+        listChildren.forEach(child => {
           if (child.type === 'list') {
             entries.push(...child.children);
           } else {
             throw new Error(
               `Found unexpected "${
                 child.elt.tagName
-              }" tag after list in "${titleText}": ${$.html(child.elt)}`,
+              }" tag after list in "${titleText}": ${$.html(child.elt)}`
             );
           }
         });
@@ -113,7 +113,7 @@ export function generateBreadcrumbs(outline) {
   const result = new Map();
   const recurse = (node, path) => {
     if (node.type === 'entry') {
-      path = [...path, {title: node.titleText, url: node.url}];
+      path = [...path, { title: node.titleText, url: node.url }];
       if (node.url != null) {
         const entries = result.get(node.url) || [];
         entries.push(path);
@@ -121,7 +121,7 @@ export function generateBreadcrumbs(outline) {
       }
     }
     if (node.children) {
-      node.children.forEach((child) => recurse(child, path));
+      node.children.forEach(child => recurse(child, path));
     }
   };
 

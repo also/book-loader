@@ -9,7 +9,7 @@ type EnvThing = {
 };
 
 export function create(): Env {
-  return {jsTemplateReplacements: []};
+  return { jsTemplateReplacements: [] };
 }
 
 export function createTemplatePattern(): RegExp {
@@ -48,20 +48,19 @@ export function* generator(s: string): Iterable<EnvThing> {
   for (let i = 0; i < parts.length; i += 3) {
     const raw = parts[i];
     if (raw.length > 0) {
-      yield {raw};
+      yield { raw };
     }
     const type = parts[i + 1];
     if (type) {
       const rawJs = parts[i + 2];
       const js = type === '-' ? `escapeHtml(${rawJs})` : rawJs;
-      yield {js, rawJs};
+      yield { js, rawJs };
     }
   }
 }
 
 export function apply(s: string): string {
-  return Array.from(
-    generator(s),
-    ({js, raw}) => (js ? `(${js})` : JSON.stringify(raw)),
+  return Array.from(generator(s), ({ js, raw }) =>
+    js ? `(${js})` : JSON.stringify(raw)
   ).join(' +\n    ');
 }
