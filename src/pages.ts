@@ -261,7 +261,9 @@ function getToc(context: RenderContext, tocModuleId: WebpackModuleId) {
         webpackModule[TOC] = toc;
       }
 
-      compilation.applyPlugins1('book-toc-rendered', toc);
+      if (options.onBookTocRendered) {
+        options.onBookTocRendered(toc);
+      }
     } catch (e) {
       tocs.set(tocModuleId, null);
       e.module = webpackModule;

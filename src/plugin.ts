@@ -3,7 +3,7 @@ const cheerio = require('cheerio');
 const MultiEntryPlugin = require('webpack/lib/MultiEntryPlugin');
 const webpack = require('webpack');
 import PageUrlPlugin from './PageUrlPlugin';
-import { Page, RenderedPage, createAsset, WEBPACK_MODULE } from './pages';
+import { Page, RenderedPage, createAsset, WEBPACK_MODULE, Toc } from './pages';
 
 const RENDERED_PAGES = Symbol('RENDERED_PAGES');
 export const TOC = Symbol('TOC');
@@ -15,6 +15,7 @@ export type Options = {
   generateOutline?: boolean;
   cachePages?: boolean;
   removeTitleElt?: boolean;
+  onBookTocRendered?: (Toc) => void;
 };
 
 export type WebpackModule = {

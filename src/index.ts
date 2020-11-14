@@ -27,7 +27,7 @@ module.exports = function bookLoader(content: string): string {
     content = md.render(body);
   }
 
-  const context = query.context || this.options.context;
+  const context = query.context || this.rootContext;
 
   const url = attributes.hasOwnProperty('url')
     ? attributes.url
