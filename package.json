@@ -5,7 +5,7 @@
     "cheerio": "^0.20.0",
     "front-matter": "^2.3.0",
     "loader-utils": "^0.2.14",
-    "lodash": "^4.12.0",
+    "lodash": "^4.17.21",
     "lunr": "^0.7.0",
     "markdown-it": "^8.1.0",
     "urijs": "^1.18.0"
